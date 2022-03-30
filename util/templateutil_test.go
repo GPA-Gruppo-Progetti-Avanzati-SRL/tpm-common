@@ -1,8 +1,8 @@
 package util_test
 
 import (
-	"github.com/mario-imperato/tpm-common/util"
-	varResolver "github.com/mario-imperato/tpm-common/util/vars"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

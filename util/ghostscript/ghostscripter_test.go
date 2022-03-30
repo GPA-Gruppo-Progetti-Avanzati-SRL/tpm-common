@@ -2,9 +2,8 @@ package ghostscript_test
 
 import (
 	"fmt"
-	"github.com/mario-imperato/tpm-common/util/ghostscript"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/ghostscript"
 	"github.com/stretchr/testify/require"
-
 	"io/ioutil"
 	"os"
 	"testing"

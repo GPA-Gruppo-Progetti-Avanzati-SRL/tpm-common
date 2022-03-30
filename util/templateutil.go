@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"errors"
-	varResolver "github.com/mario-imperato/tpm-common/util/vars"
+	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/rs/zerolog/log"
 	"go/format"
 	"io/ioutil"

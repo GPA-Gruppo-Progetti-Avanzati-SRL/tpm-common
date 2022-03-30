@@ -1,7 +1,7 @@
 package varResolver_test
 
 import (
-	vars "github.com/mario-imperato/tpm-common/util/vars"
+	vars "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

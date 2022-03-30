@@ -3,7 +3,7 @@ package ghostscript
 import (
 	"errors"
 	"fmt"
-	"github.com/mario-imperato/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"io/fs"
 	"io/ioutil"
