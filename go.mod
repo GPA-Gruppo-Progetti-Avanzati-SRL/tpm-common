@@ -1,4 +1,4 @@
-module github.com/mario-imperato/tpm-common
+module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common
 
 go 1.17
 
