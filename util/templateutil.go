@@ -63,7 +63,8 @@ func ParseTemplates(templates []TemplateInfo, fMaps template.FuncMap) (*template
 		mainTemplate = mainTemplate.Funcs(fMaps)
 	}
 
-	if mainTemplate, err := mainTemplate.Parse(templates[0].Content); err != nil {
+	var err error
+	if mainTemplate, err = mainTemplate.Parse(templates[0].Content); err != nil {
 		return nil, err
 	} else {
 		for i := 1; i < len(templates); i++ {
@@ -162,7 +163,7 @@ func ProcessTemplateWrite2File(pkgTemplate *template.Template, templateData inte
 		return err
 	}
 
-	if err := ioutil.WriteFile(outputFile, data, os.ModePerm); err != nil {
+	if err = ioutil.WriteFile(outputFile, data, os.ModePerm); err != nil {
 		return err
 	}
 
@@ -174,10 +175,11 @@ func LoadTemplateProcessWrite2File(templateFileName string, templateData interfa
 	if f, err := ioutil.ReadFile(templateFileName); err != nil {
 		return err
 	} else {
-		if pkgTemplate, err := template.New("css").Parse(string(f)); err != nil {
+		var pkgTemplate *template.Template
+		if pkgTemplate, err = template.New("css").Parse(string(f)); err != nil {
 			return err
 		} else {
-			if err := ProcessTemplateWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
+			if err = ProcessTemplateWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
 				return err
 			}
 		}
