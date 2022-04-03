@@ -2,6 +2,7 @@ package util_test
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -26,4 +27,7 @@ func TestPathUtil(t *testing.T) {
 		t.Log(len(ph), ph)
 	}
 
+	ph := util.FindGoModFolder(".")
+	require.NotEmpty(t, ph, "could not found go.mod")
+	t.Log("go mod folder:", ph)
 }

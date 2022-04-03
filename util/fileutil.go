@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 )
@@ -163,7 +162,7 @@ func FindFiles(folderPath string, opts ...FileFindOption) ([]string, error) {
 	}
 
 	for _, fi := range fis {
-		p := path.Join(folderPath, fi.Name())
+		p := filepath.Join(folderPath, fi.Name())
 		if cfg.acceptFileName(fi.Name(), fi.IsDir()) {
 			files = append(files, p)
 		}

@@ -2,7 +2,7 @@ package util
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -18,7 +18,7 @@ func ListPathHierarchy(startingPath string, upWard bool) []string {
 
 	if startingPath == "" || startingPath[0:1] == "." || startingPath[0:1] != "/" {
 		wd, _ := os.Getwd()
-		startingPath = path.Join(wd, startingPath)
+		startingPath = filepath.Join(wd, startingPath)
 	}
 
 	pathSegs := strings.Split(startingPath, "/")
@@ -34,7 +34,7 @@ func ListPathHierarchy(startingPath string, upWard bool) []string {
 		stepLoop = 1
 	}
 	for i := startLoop; (upWard && i > 0) || (!upWard && i <= len(pathSegs)); i += stepLoop {
-		p := path.Join(pathSegs[0:i]...)
+		p := filepath.Join(pathSegs[0:i]...)
 		resultPaths = append(resultPaths, p)
 	}
 	return resultPaths
@@ -44,11 +44,21 @@ func FindFileInClosestDirectory(startingFolder, fileName string) string {
 	ph := ListPathHierarchy(startingFolder, true)
 
 	for i := 0; i <= len(ph); i++ {
-		fp := path.Join(ph[i], fileName)
+		fp := filepath.Join(ph[i], fileName)
 		_, err := os.Stat(fp)
 		if err == nil {
 			return fp
 		}
+	}
+
+	return ""
+}
+
+func FindGoModFolder(startingFolder string) string {
+	ph := FindFileInClosestDirectory(startingFolder, "go.mod")
+
+	if ph != "" {
+		return filepath.Dir(ph)
 	}
 
 	return ""

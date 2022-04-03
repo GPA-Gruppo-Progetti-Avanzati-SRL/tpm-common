@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -72,7 +72,7 @@ type GsCmd struct {
 }
 
 func (cmd *GsCmd) InputTempFileName() string {
-	return path.Join(cmd.workFolder, fmt.Sprintf(TempInFilePattern, DefaultFilePrefix, cmd.cmdId))
+	return filepath.Join(cmd.workFolder, fmt.Sprintf(TempInFilePattern, DefaultFilePrefix, cmd.cmdId))
 }
 
 func (cmd *GsCmd) OutputTempFilePattern() (string, error) {
@@ -237,8 +237,8 @@ func (cmd *GsCmd) BuildArgList() ([]string, error) {
 			if a.argValue == "" {
 				return nil, fmt.Errorf("missing value for %s switch", a.argId)
 			}
-			if path.Dir(a.argValue) == "." {
-				cmdArg = a.argSwitch + path.Join(cmd.workFolder, a.argValue)
+			if filepath.Dir(a.argValue) == "." {
+				cmdArg = a.argSwitch + filepath.Join(cmd.workFolder, a.argValue)
 			}
 		default:
 		}
@@ -373,7 +373,7 @@ func collectOutputFiles(workDir string, filePattern string, minExpected int) ([]
 		fileNum := 0
 		for keepLooping {
 			fileNum++
-			fn := path.Join(workDir, fmt.Sprintf(filePattern, fileNum))
+			fn := filepath.Join(workDir, fmt.Sprintf(filePattern, fileNum))
 			if util.FileExists(fn) {
 				files = append(files, fn)
 			} else {
@@ -381,7 +381,7 @@ func collectOutputFiles(workDir string, filePattern string, minExpected int) ([]
 			}
 		}
 	} else {
-		fn := path.Join(workDir, filePattern)
+		fn := filepath.Join(workDir, filePattern)
 		if util.FileExists(fn) {
 			files = append(files, fn)
 		}
