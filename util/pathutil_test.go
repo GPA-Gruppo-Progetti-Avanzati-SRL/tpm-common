@@ -28,6 +28,19 @@ func TestPathUtil(t *testing.T) {
 	}
 
 	ph := util.FindGoModFolder(".")
-	require.NotEmpty(t, ph, "could not found go.mod")
+	require.NotEmpty(t, ph, "could not find go.mod")
 	t.Log("go mod folder:", ph)
+
+	ps1 := []string{
+		"./relPathWithDot/cpxsequence",
+		"~/util/ghostscript",
+		"~/Applications",
+	}
+
+	for _, p := range ps1 {
+		rp, err := util.ResolveFolder(p)
+		require.NoError(t, err)
+		require.NotEmpty(t, rp, "could not find ", p)
+		t.Log(p, " resolved -->", rp)
+	}
 }

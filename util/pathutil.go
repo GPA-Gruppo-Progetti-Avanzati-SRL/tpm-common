@@ -63,3 +63,23 @@ func FindGoModFolder(startingFolder string) string {
 
 	return ""
 }
+
+func ResolveFolder(folder string) (string, error) {
+
+	if folder != "" && folder[:1] == "~" {
+		ph := FindGoModFolder(".")
+		if ph != "" {
+			return filepath.Join(ph, folder[1:]), nil
+		}
+
+		userHome, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+
+		return filepath.Join(userHome, folder[1:]), nil
+
+	}
+
+	return folder, nil
+}
