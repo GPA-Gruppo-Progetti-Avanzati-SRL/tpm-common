@@ -64,22 +64,41 @@ func FindGoModFolder(startingFolder string) string {
 	return ""
 }
 
-func ResolveFolder(folder string) (string, error) {
+func ResolvePath(p string) (string, bool) {
 
-	if folder != "" && folder[:1] == "~" {
-		ph := FindGoModFolder(".")
-		if ph != "" {
-			return filepath.Join(ph, folder[1:]), nil
-		}
-
-		userHome, err := os.UserHomeDir()
+	var okGoMod bool
+	var okUserHome bool
+	if p != "" && p[:1] == "~" {
+		goModPath := FindGoModFolder(".")
+		userHomePath, err := os.UserHomeDir()
 		if err != nil {
-			return "", err
+			return "", false
 		}
 
-		return filepath.Join(userHome, folder[1:]), nil
+		if userHomePath != "" {
+			userHomePath, okUserHome = resolvePathInHomeFolder(userHomePath, p[1:])
+		}
 
+		if goModPath != "" {
+			goModPath, okGoMod = resolvePathInHomeFolder(goModPath, p[1:])
+		}
+
+		if okUserHome && !okGoMod {
+			return userHomePath, okUserHome
+		}
+
+		return goModPath, okGoMod
 	}
 
-	return folder, nil
+	return p, FileExists(p)
+}
+
+func resolvePathInHomeFolder(home string, p string) (string, bool) {
+	exists := false
+	retp := filepath.Join(home, p)
+	if FileExists(retp) {
+		exists = true
+	}
+
+	return retp, exists
 }

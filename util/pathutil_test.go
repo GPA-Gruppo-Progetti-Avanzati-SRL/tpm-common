@@ -38,9 +38,8 @@ func TestPathUtil(t *testing.T) {
 	}
 
 	for _, p := range ps1 {
-		rp, err := util.ResolveFolder(p)
-		require.NoError(t, err)
+		rp, ok := util.ResolvePath(p)
 		require.NotEmpty(t, rp, "could not find ", p)
-		t.Log(p, " resolved -->", rp)
+		t.Log(p, " resolved -->", rp, ok)
 	}
 }
