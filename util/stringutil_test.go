@@ -39,6 +39,7 @@ func TestStrings(t *testing.T) {
 		{"css-class-name", "css-class-name"},
 		{"my favorite items", "my favorite items"},
 		{"CONTO BANCOPOSTA RETAIL", "conto bancoposta retail"},
+		{"camt_029_001_09", "camt_029_001_09"},
 	}
 
 	for _, iw := range s {
@@ -54,6 +55,7 @@ func TestStrings(t *testing.T) {
 		{"css-class-name", "css-class-name"},
 		{"my favorite items", "my-favorite-items"},
 		{"CONTO BANCOPOSTA RETAIL", "conto-bancoposta-retail"},
+		{"camt_029_001_09", "camt-029-001-09"},
 	}
 
 	for _, iw := range s {
@@ -70,6 +72,8 @@ func TestStrings(t *testing.T) {
 		{"my favorite items", "myFavoriteItems"},
 		{"My Favorite Items", "myFavoriteItems"},
 		{"CONTO BANCOPOSTA RETAIL", "cONTOBANCOPOSTARETAIL"},
+		{"camt_029_001_09", "camt02900109"},
+		{"camt.029.001.09", "camt02900109"},
 	}
 
 	for _, iw := range s {
@@ -85,6 +89,8 @@ func TestStrings(t *testing.T) {
 		{"css-class-name", "CssClassName"},
 		{"my favorite items", "MyFavoriteItems"},
 		{"CONTO BANCOPOSTA RETAIL", "CONTOBANCOPOSTARETAIL"},
+		{"camt_029_001_09", "Camt02900109"},
+		{"camt.029.001.09", "Camt.029.001.09"},
 	}
 
 	for _, iw := range s {
@@ -100,6 +106,7 @@ func TestStrings(t *testing.T) {
 		{"css-class-name", "css_class_name"},
 		{"my favorite items", "my_favorite_items"},
 		{"CONTO BANCOPOSTA RETAIL", "conto_bancoposta_retail"},
+		{"camt_029_001_09", "camt_029_001_09"},
 	}
 
 	for _, iw := range s {
