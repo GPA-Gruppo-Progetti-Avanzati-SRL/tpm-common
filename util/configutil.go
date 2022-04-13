@@ -2,6 +2,7 @@ package util
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"regexp"
@@ -24,11 +25,36 @@ func ResolveConfigValue(v string) string {
 	return v
 }
 
-// ResolveEnvVarsInConfigFile Deprecated
-func ResolveEnvVarsInConfigFile(cfgFile string) (string, error) {
-	return ReadFileAndResolveEnvVars(cfgFile)
+func ReadFileAndResolveEnvVars(cfgFile string) ([]byte, error) {
+
+	fsz := FileSize(cfgFile)
+	if fsz < 0 {
+		return nil, fmt.Errorf("error reading file %s", cfgFile)
+	}
+
+	file, err := os.Open(cfgFile)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var sb bytes.Buffer
+	sb.Grow(int(fsz))
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		sb.WriteString(ResolveConfigValue(scanner.Text()))
+		sb.WriteString("\n")
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return sb.Bytes(), nil
 }
 
+/*
 func ReadFileAndResolveEnvVars(cfgFile string) (string, error) {
 
 	fsz := FileSize(cfgFile)
@@ -58,6 +84,7 @@ func ReadFileAndResolveEnvVars(cfgFile string) (string, error) {
 	return sb.String(), nil
 }
 
+
 func ReadConfig(fileConfigPathEnvVar string, defaultConfigContent string, resolveEnv bool) (string, string, error) {
 
 	configPath := os.Getenv(fileConfigPathEnvVar)
@@ -77,4 +104,26 @@ func ReadConfig(fileConfigPathEnvVar string, defaultConfigContent string, resolv
 	}
 
 	return "", "", fmt.Errorf("the config path variable %s has not been set; please set", fileConfigPathEnvVar)
+}
+*/
+
+func ReadConfig(fileConfigPathEnvVar string, defaultConfigContent []byte, resolveEnv bool) (string, []byte, error) {
+
+	configPath := os.Getenv(fileConfigPathEnvVar)
+	if configPath != "" {
+		if _, err := os.Stat(configPath); err == nil {
+			cfgContent, rerr := ReadFileAndResolveEnvVars(configPath)
+			if rerr != nil {
+				return configPath, nil, err
+			}
+			return configPath, cfgContent, nil
+		}
+		return configPath, nil, fmt.Errorf("the %s env variable has been set but no file cannot be found at %s", fileConfigPathEnvVar, configPath)
+	}
+
+	if len(defaultConfigContent) > 0 {
+		return "", []byte(ResolveConfigValue(string(defaultConfigContent))), nil
+	}
+
+	return "", nil, fmt.Errorf("the config path variable %s has not been set; please set", fileConfigPathEnvVar)
 }

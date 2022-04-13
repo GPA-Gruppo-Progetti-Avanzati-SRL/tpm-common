@@ -27,12 +27,12 @@ func TestResolveConfigValue(t *testing.T) {
 	}
 }
 
-var fileContent = `
+var fileContent = []byte(`
 First line of file ${MY_VAR},
   Second line of file ${MY_VAR} - ${THIRD_ONE}
 Third line: ${MY_VAR}, ${MY_VAR}, ${SECOND_ONE}
  this is not a {var}
-`
+`)
 
 func TestResolveEnvVars(t *testing.T) {
 	os.Setenv("MY_VAR", "a my_var value")
@@ -40,11 +40,11 @@ func TestResolveEnvVars(t *testing.T) {
 	os.Setenv("SECOND_ONE", "")
 
 	fn := "./test-file.txt"
-	err := ioutil.WriteFile(fn, []byte(fileContent), fs.ModePerm)
+	err := ioutil.WriteFile(fn, fileContent, fs.ModePerm)
 	require.NoError(t, err)
 	defer os.Remove(fn)
 
-	b, err := util.ResolveEnvVarsInConfigFile(fn)
+	b, err := util.ReadFileAndResolveEnvVars(fn)
 	require.NoError(t, err)
 
 	t.Log(string(b))
