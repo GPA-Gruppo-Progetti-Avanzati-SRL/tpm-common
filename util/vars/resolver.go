@@ -96,7 +96,11 @@ func FindVariableReferences(s string, ofType VariableReferenceType) ([]VariableR
 
 type VariableResolverFunc func(s string) string
 
-func ResolveVariables(s string, ofType VariableReferenceType, aResolver VariableResolverFunc) (string, error) {
+func ResolveVariables(s string, ofType VariableReferenceType, aResolver VariableResolverFunc, trimResult bool) (string, error) {
+
+	if s == "" {
+		return s, nil
+	}
 
 	vars, err := FindVariableReferences(s, ofType)
 	if err != nil || len(vars) == 0 {
@@ -107,5 +111,5 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 		s = strings.ReplaceAll(s, v.Match, aResolver(v.VarName))
 	}
 
-	return s, nil
+	return strings.TrimSpace(s), nil
 }
