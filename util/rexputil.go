@@ -1,6 +1,9 @@
 package util
 
-import "regexp"
+import (
+	"github.com/lucasjones/reggen"
+	"regexp"
+)
 
 func ExtractCapturedGroupIfMatch(re *regexp.Regexp, s string) string {
 
@@ -11,4 +14,14 @@ func ExtractCapturedGroupIfMatch(re *regexp.Regexp, s string) string {
 	}
 
 	return s
+}
+
+func GenerateString(pattern string, n int) (string, error) {
+
+	if n <= 0 {
+		n = 10
+	}
+
+	str, err := reggen.Generate(pattern, n)
+	return str, err
 }

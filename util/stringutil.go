@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strings"
 	"text/scanner"
@@ -14,6 +15,16 @@ func Coalesce(args ...string) string {
 		}
 	}
 	return ""
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func GenerateStringOfLength(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
+	}
+	return string(b)
 }
 
 var NumericStringRegexp = regexp.MustCompile("^[-+]?\\d+(\\.\\d+)?$")

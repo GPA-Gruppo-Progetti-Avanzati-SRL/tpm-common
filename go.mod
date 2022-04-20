@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/google/uuid v1.3.0
+	github.com/lucasjones/reggen v0.0.0-20200904144131-37ba4fa293bb
 	github.com/rs/zerolog v1.26.1
 	github.com/stretchr/testify v1.7.1
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
