@@ -12,7 +12,7 @@ const (
 	SemLogPropertySegmentName = "segment-name"
 )
 
-func FindProperty(sourceMap map[string]interface{}, propName string) interface{} {
+func GetProperty(sourceMap map[string]interface{}, propName string) interface{} {
 
 	propSegments := strings.Split(propName, ".")
 
@@ -54,7 +54,7 @@ func FindProperty(sourceMap map[string]interface{}, propName string) interface{}
 	return nil
 }
 
-func AddProperty(targetMap map[string]interface{}, propertyPath string, value interface{}) error {
+func SetProperty(targetMap map[string]interface{}, propertyPath string, value interface{}) error {
 
 	propSegments := strings.Split(propertyPath, ".")
 
@@ -115,7 +115,7 @@ func cast2Map(propPath string, propName string, v interface{}, mustArray bool) m
 }
 
 func GetIntProperty(sourceMap map[string]interface{}, p string) int {
-	i := FindProperty(sourceMap, p)
+	i := GetProperty(sourceMap, p)
 	if i != nil {
 		switch tv := i.(type) {
 		case float64:
@@ -128,7 +128,7 @@ func GetIntProperty(sourceMap map[string]interface{}, p string) int {
 
 func GetStringProperty(sourceMap map[string]interface{}, propName string) (string, error) {
 
-	v := FindProperty(sourceMap, propName)
+	v := GetProperty(sourceMap, propName)
 	if v == nil {
 		return "", fmt.Errorf("%s cannot be found in document", propName)
 	}
@@ -143,7 +143,7 @@ func GetStringProperty(sourceMap map[string]interface{}, propName string) (strin
 
 func GetTimeProperty(sourceMap map[string]interface{}, propName string, propLayout string) (time.Time, error) {
 
-	v := FindProperty(sourceMap, propName)
+	v := GetProperty(sourceMap, propName)
 	if v == nil {
 		return time.Time{}, fmt.Errorf("%s cannot be found in document", propName)
 	}

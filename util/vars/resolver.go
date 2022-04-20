@@ -38,11 +38,11 @@ const (
 )
 
 // VariableReferencePatternRegexp sort of strict mode with names of vars starting with letters followed by letters, digits and the chars ':', '_', '-'
-var VariableReferencePatternRegexp = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)([a-zA-Z][\\:a-zA-Z0-9_-]*)([%#]>|})")
+var VariableReferencePatternRegexp = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)([a-zA-Z][\\:a-zA-Z0-9_\\-,]*)([%#]>|})")
 
 // VariableReferencePatternRegexpExt sort of extended mode with names of vars starting with letters or the dollar sign followed by more possible chars.
 // Tried to include symbols from https://goessner.net/articles/JsonPath/
-var VariableReferencePatternRegexpExt = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)([$a-zA-Z][:,@'$\\.\\[\\]a-zA-Z0-9_-]*)([%#]>|})")
+var VariableReferencePatternRegexpExt = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)([$a-zA-Z][:,@'$\\.\\[\\]a-zA-Z0-9_\\-\\.]*)([%#]>|})")
 
 type PrefixSuffixTypeMapping struct {
 	Type   VariableReferenceType

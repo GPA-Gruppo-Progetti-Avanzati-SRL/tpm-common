@@ -16,7 +16,7 @@ func ExtractCapturedGroupIfMatch(re *regexp.Regexp, s string) string {
 	return s
 }
 
-func GenerateString(pattern string, n int) (string, error) {
+func GenerateStringOfPattern(pattern string, n int) (string, error) {
 
 	if n <= 0 {
 		n = 10
