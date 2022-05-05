@@ -14,6 +14,8 @@ func TestFindVariableReferences(t *testing.T) {
 		"<%=PERC_VAR%>",
 		"<#=DASH_VAR#>",
 		"my var: ${MY_VAR}, second one: ${SECOND_ONE}, third var: ${THIRD_ONE}",
+		"{$.myvar}",
+		"{$[\"my-var\"]}",
 	}
 
 	for _, s := range sarr {
