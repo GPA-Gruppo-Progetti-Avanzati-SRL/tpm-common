@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -23,6 +24,25 @@ func TestIsNumeric(t *testing.T) {
 type InputWanted struct {
 	input  string
 	wanted string
+}
+
+func TestStringJoin(t *testing.T) {
+
+	s := []string{
+		"0123456789", "ABCDEFGHIJ",
+	}
+
+	ns := util.StringJoin(s, "-", 15)
+	require.Equal(t, 15, len(ns), "failed to join")
+	t.Log(ns)
+
+	ns = util.StringJoin(s, "-", -15)
+	require.Equal(t, 15, len(ns), "failed to join")
+	t.Log(ns)
+
+	ns = util.StringJoin(s, "-", 0)
+	require.Equal(t, 21, len(ns), "failed to join")
+	t.Log(ns)
 }
 
 func TestStrings(t *testing.T) {

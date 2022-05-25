@@ -17,6 +17,23 @@ func Coalesce(args ...string) string {
 	return ""
 }
 
+// StringJoin joins an array of strings with separator (same as strings.Join) and truncate the result if the resulting len is bigger than maxLength.
+// If maxLength == 0 no truncation happens, if maxLength > 0 the end of the string is truncated (that is keep left), if maxLength < 0 the beginning of the string
+// is truncated.
+func StringJoin(args []string, sep string, maxLength int) string {
+	s := strings.Join(args, sep)
+	uMaxLength := IntAbs(maxLength)
+	if len(s) > uMaxLength && maxLength != 0 {
+		if maxLength < 0 {
+			s = s[len(s)-uMaxLength:]
+		} else {
+			s = s[:uMaxLength]
+		}
+	}
+
+	return s
+}
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func GenerateStringOfLength(n int) string {
