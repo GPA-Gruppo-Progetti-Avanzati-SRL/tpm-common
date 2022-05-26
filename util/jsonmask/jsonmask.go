@@ -12,37 +12,51 @@ import (
 type FieldInfo struct {
 	Path     string
 	MaskType string
+	uxPath   string
 	indexes  []int
 }
 
 type fieldRegistry map[string]FieldInfo
 type JsonMask struct {
-	registry map[string]fieldRegistry
+	fullPathsRegistry    map[string]fieldRegistry
+	partialPathsRegistry map[string][]FieldInfo
 }
 
 func NewJsonMask() *JsonMask {
-	return &JsonMask{registry: make(map[string]fieldRegistry)}
+	return &JsonMask{fullPathsRegistry: make(map[string]fieldRegistry), partialPathsRegistry: make(map[string][]FieldInfo)}
 }
 
 func (jm *JsonMask) Add(ctxName string, fields []FieldInfo) {
 	fr := make(fieldRegistry)
+	var pfr []FieldInfo
 	for _, f := range fields {
-		up, ndxs := ParsePath(f.Path)
-		f.indexes = ndxs
-		fr[up] = f
+		f.uxPath, f.indexes = ParsePath(f.Path)
+		switch f.Path[0] {
+		case '.':
+			fr[f.uxPath] = f
+		case '*':
+			f.Path = f.Path[1:]
+			f.uxPath = f.uxPath[1:]
+			pfr = append(pfr, f)
+		}
+
 	}
 
 	if len(fr) > 0 {
-		jm.registry[ctxName] = fr
+		jm.fullPathsRegistry[ctxName] = fr
+	}
+
+	if len(pfr) > 0 {
+		jm.partialPathsRegistry[ctxName] = pfr
 	}
 }
 
 func (jm *JsonMask) Mask(ctxName string, jsonData []byte) ([]byte, error) {
-	if len(jm.registry) == 0 || len(jsonData) == 0 {
+	if len(jm.fullPathsRegistry) == 0 || len(jsonData) == 0 {
 		return jsonData, nil
 	}
 
-	_, ok := jm.registry[ctxName]
+	_, ok := jm.fullPathsRegistry[ctxName]
 	if !ok {
 		return jsonData, nil
 	}
@@ -111,21 +125,61 @@ func (jm *JsonMask) walkThrough(ctxName, path string, parentTarget, target inter
 }
 
 func (jm *JsonMask) HasToBeMasked(ctxName, path string) (FieldInfo, bool) {
-	fr := jm.registry[ctxName]
+	fr := jm.fullPathsRegistry[ctxName]
 
 	up, ndxs := ParsePath(path)
 	if fi, ok := fr[up]; ok {
-		if len(fi.indexes) > 0 {
-			for i, val := range fi.indexes {
-				if val != -1 && ndxs[i] != val {
-					return FieldInfo{}, false
+		if cmpFieldIndexes(fi.indexes, ndxs) {
+			return fi, true
+		}
+
+		return FieldInfo{}, false
+		/*
+			if len(fi.indexes) > 0 {
+				for i, val := range fi.indexes {
+					if val != -1 && ndxs[i] != val {
+						return FieldInfo{}, false
+					}
 				}
 			}
+			return fi, true
+		*/
+	}
+
+	pfr, ok := jm.partialPathsRegistry[ctxName]
+	if ok {
+		for _, fi := range pfr {
+			if strings.HasSuffix(up, fi.uxPath) {
+				if cmpFieldIndexes(fi.indexes, ndxs) {
+					return fi, true
+				}
+
+				return FieldInfo{}, false
+			}
 		}
-		return fi, true
 	}
 
 	return FieldInfo{}, false
+}
+
+// cmpFieldIndexes compare two arrays of integers. They are expected of generally being of the same size. If not the first is expected to have fewer elements.
+// comparison happens on the rightmost part of the array.
+func cmpFieldIndexes(ndxs1, ndxs2 []int) bool {
+	if len(ndxs1) > 0 && len(ndxs2) > 0 {
+		ndxs2Offset := len(ndxs2) - len(ndxs1)
+		if ndxs2Offset < 0 {
+			panic(fmt.Errorf("index arrays have wrong elements to compare %v, %v", ndxs1, ndxs2))
+		}
+		for i := 0; i < len(ndxs1); i++ {
+			val := ndxs1[i]
+			val2 := ndxs2[i+ndxs2Offset]
+			if val != -1 && val2 != val {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 var PathIndexedRegexp = regexp.MustCompile("\\.\\[([0-9]*)\\]")

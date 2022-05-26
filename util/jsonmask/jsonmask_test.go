@@ -71,6 +71,9 @@ func TestMask(t *testing.T) {
 		{
 			Path: ".operazioni.[].codici-fiscali.[]",
 		},
+		{
+			Path: "*soggetti.[].denominazione",
+		},
 	}
 
 	jm := jsonmask.NewJsonMask()
@@ -108,6 +111,9 @@ func TestShouldBeMasked(t *testing.T) {
 		},
 		{
 			Path: ".lev.[].subLev.[].thirdLev.[12]",
+		},
+		{
+			Path: "*thirdLev.[]",
 		},
 	}
 
