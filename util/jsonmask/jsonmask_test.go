@@ -76,7 +76,8 @@ func TestMask(t *testing.T) {
 		},
 	}
 
-	jm := jsonmask.NewJsonMask()
+	jm, err := jsonmask.NewJsonMask()
+	require.NoError(t, err)
 	jm.Add("request", fields)
 
 	masked, err := jm.Mask("request", jsonData)
@@ -117,7 +118,9 @@ func TestShouldBeMasked(t *testing.T) {
 		},
 	}
 
-	jm := jsonmask.NewJsonMask()
+	jm, err := jsonmask.NewJsonMask()
+	require.NoError(t, err)
+
 	jm.Add("request", fields)
 
 	sarr := []string{
@@ -131,4 +134,25 @@ func TestShouldBeMasked(t *testing.T) {
 		t.Log(i, s, b)
 	}
 
+}
+
+var cfgData = []byte(`
+request:
+  name: request
+  fields:
+     - path: ".operazioni.[].codice-rapporto"
+     - path: ".operazioni.[].codice-controparte"
+     - path: ".operazioni.[].soggetti.[].codice-fiscale"
+     - path: ".operazioni.[].codici-fiscali.[]"
+     - path: "*soggetti.[].denominazione"
+`)
+
+func TestRead(t *testing.T) {
+	jm, err := jsonmask.NewJsonMask(jsonmask.FromData(cfgData))
+	require.NoError(t, err)
+
+	masked, err := jm.Mask("request", jsonData)
+	require.NoError(t, err)
+
+	t.Log(string(masked))
 }

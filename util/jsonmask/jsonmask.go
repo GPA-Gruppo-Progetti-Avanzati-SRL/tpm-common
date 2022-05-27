@@ -9,21 +9,37 @@ import (
 	"strings"
 )
 
-type FieldInfo struct {
-	Path     string
-	MaskType string
-	uxPath   string
-	indexes  []int
-}
-
 type fieldRegistry map[string]FieldInfo
 type JsonMask struct {
 	fullPathsRegistry    map[string]fieldRegistry
 	partialPathsRegistry map[string][]FieldInfo
 }
 
-func NewJsonMask() *JsonMask {
-	return &JsonMask{fullPathsRegistry: make(map[string]fieldRegistry), partialPathsRegistry: make(map[string][]FieldInfo)}
+func NewJsonMask(opts ...Option) (*JsonMask, error) {
+	jm := &JsonMask{fullPathsRegistry: make(map[string]fieldRegistry), partialPathsRegistry: make(map[string][]FieldInfo)}
+
+	bld := builder{}
+	for _, o := range opts {
+		o(&bld)
+	}
+
+	var cfgMap Config
+	var err error
+	if bld.fn != "" {
+		cfgMap, err = readConfigFromFile(bld.fn)
+	} else {
+		cfgMap, err = readConfig(bld.yamlData)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	for dn, cfg := range cfgMap {
+		jm.Add(dn, cfg.Fields)
+	}
+
+	return jm, nil
 }
 
 func (jm *JsonMask) Add(ctxName string, fields []FieldInfo) {
