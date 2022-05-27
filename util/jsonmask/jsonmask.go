@@ -68,13 +68,18 @@ func (jm *JsonMask) Add(ctxName string, fields []FieldInfo) {
 }
 
 func (jm *JsonMask) Mask(ctxName string, jsonData []byte) ([]byte, error) {
-	if len(jm.fullPathsRegistry) == 0 || len(jsonData) == 0 {
+	if /* (len(jm.fullPathsRegistry) == 0 && len(jm.partialPathsRegistry) == 0) || */ len(jsonData) == 0 {
 		return jsonData, nil
 	}
 
+	// Check to see if the context has some content somewhere
+	// A nil map behaves like an empty map when reading
 	_, ok := jm.fullPathsRegistry[ctxName]
 	if !ok {
-		return jsonData, nil
+		_, ok = jm.partialPathsRegistry[ctxName]
+		if !ok {
+			return jsonData, nil
+		}
 	}
 
 	var target interface{}
@@ -141,27 +146,34 @@ func (jm *JsonMask) walkThrough(ctxName, path string, parentTarget, target inter
 }
 
 func (jm *JsonMask) HasToBeMasked(ctxName, path string) (FieldInfo, bool) {
-	fr := jm.fullPathsRegistry[ctxName]
-
 	up, ndxs := ParsePath(path)
-	if fi, ok := fr[up]; ok {
-		if cmpFieldIndexes(fi.indexes, ndxs) {
-			return fi, true
-		}
 
-		return FieldInfo{}, false
-		/*
-			if len(fi.indexes) > 0 {
-				for i, val := range fi.indexes {
-					if val != -1 && ndxs[i] != val {
-						return FieldInfo{}, false
+	//if len(jm.fullPathsRegistry) > 0 {
+	// A nil map behaves like an empty map when reading
+	fr, ok := jm.fullPathsRegistry[ctxName]
+	if ok {
+		if fi, ok := fr[up]; ok {
+			if cmpFieldIndexes(fi.indexes, ndxs) {
+				return fi, true
+			}
+
+			return FieldInfo{}, false
+			/*
+				if len(fi.indexes) > 0 {
+					for i, val := range fi.indexes {
+						if val != -1 && ndxs[i] != val {
+							return FieldInfo{}, false
+						}
 					}
 				}
-			}
-			return fi, true
-		*/
+				return fi, true
+			*/
+		}
 	}
+	// }
 
+	// if len(jm.partialPathsRegistry) > 0 {
+	// A nil map behaves like an empty map when reading
 	pfr, ok := jm.partialPathsRegistry[ctxName]
 	if ok {
 		for _, fi := range pfr {
@@ -174,7 +186,7 @@ func (jm *JsonMask) HasToBeMasked(ctxName, path string) (FieldInfo, bool) {
 			}
 		}
 	}
-
+	// }
 	return FieldInfo{}, false
 }
 
