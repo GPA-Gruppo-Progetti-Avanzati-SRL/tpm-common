@@ -83,7 +83,7 @@ func (jm *JsonMask) Mask(ctxName string, jsonData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	err = jm.walkThrough("request", "", nil, target)
+	err = jm.walkThrough(ctxName, "", nil, target)
 	if err != nil {
 		return nil, err
 	}
