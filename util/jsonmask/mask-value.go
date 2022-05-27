@@ -81,7 +81,7 @@ func randomMask(c string, maskingChar rune) string {
 		}
 		//case not mask yet
 		if len(r)-1 >= v {
-			r[v] = '*'
+			r[v] = maskingChar
 			raffle[v] = v
 		}
 	}
