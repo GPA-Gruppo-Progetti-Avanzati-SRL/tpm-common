@@ -50,6 +50,16 @@ func IsNumeric(inputData string) bool {
 	return NumericStringRegexp.Match([]byte(inputData))
 }
 
+func StringArrayContains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 func ParseSetClause(src string, clauseDelimiter rune) (map[string]interface{}, error) {
 
 	var s scanner.Scanner
