@@ -13,20 +13,32 @@ type Element struct {
 }
 
 type DotPath struct {
-	Path  string
-	Elems []Element
+	BasePath string
+	Elems    []Element
 }
 
 var IndexedRegExpr = regexp.MustCompile("\\[([0-9]+)\\]")
 
 func NewPath(p string) (DotPath, error) {
-	xp := DotPath{Path: p}
+	xp := DotPath{}
 
 	els := strings.Split(p, ".")
 	elsInfo := make([]Element, len(els))
+	var sb strings.Builder
 	for i, e := range els {
 
-		a := Element{Name: e, IndexingType: "none"}
+		a := Element{IndexingType: "none"}
+		if ndx := strings.Index(e, "["); ndx >= 0 {
+			a.Name = e[0:ndx]
+		} else {
+			a.Name = e
+		}
+
+		if i > 0 {
+			sb.WriteString(".")
+		}
+		sb.WriteString(a.Name)
+
 		if strings.HasSuffix(e, "[+]") {
 			a.IndexingType = "plus"
 		} else if strings.HasSuffix(e, "[]") {
@@ -47,10 +59,7 @@ func NewPath(p string) (DotPath, error) {
 		elsInfo[i] = a
 	}
 
+	xp.BasePath = sb.String()
 	xp.Elems = elsInfo
 	return xp, nil
-}
-
-func (xp DotPath) BasePath() string {
-	return strings.ReplaceAll(xp.Path, "[]", "")
 }

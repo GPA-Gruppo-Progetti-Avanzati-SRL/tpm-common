@@ -10,6 +10,8 @@ func TestNewPath(t *testing.T) {
 
 	sarr := []string{
 		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[].Id",
+		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[+].Id",
+		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[12].Id",
 	}
 
 	for i, s := range sarr {
