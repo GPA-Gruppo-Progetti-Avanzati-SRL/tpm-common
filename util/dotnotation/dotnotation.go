@@ -6,9 +6,18 @@ import (
 	"strings"
 )
 
+type IndexingTypeEnum string
+
+const (
+	None       IndexingTypeEnum = "none"
+	Empty                       = "empty"
+	Add                         = "add"
+	IndexValue                  = "ndx-value"
+)
+
 type Element struct {
 	Name          string
-	IndexingType  string
+	IndexingType  IndexingTypeEnum
 	IndexingValue int
 }
 
@@ -27,7 +36,7 @@ func NewPath(p string) (DotPath, error) {
 	var sb strings.Builder
 	for i, e := range els {
 
-		a := Element{IndexingType: "none"}
+		a := Element{IndexingType: None}
 		if ndx := strings.Index(e, "["); ndx >= 0 {
 			a.Name = e[0:ndx]
 		} else {
@@ -40,13 +49,13 @@ func NewPath(p string) (DotPath, error) {
 		sb.WriteString(a.Name)
 
 		if strings.HasSuffix(e, "[+]") {
-			a.IndexingType = "plus"
+			a.IndexingType = Add
 		} else if strings.HasSuffix(e, "[]") {
-			a.IndexingType = "empty"
+			a.IndexingType = Empty
 		} else {
 			matches := IndexedRegExpr.FindAllSubmatch([]byte(e), -1)
 			if len(matches) > 0 {
-				a.IndexingType = "index"
+				a.IndexingType = IndexValue
 
 				var err error
 				a.IndexingValue, err = strconv.Atoi(string(matches[0][1]))
