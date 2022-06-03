@@ -12,6 +12,9 @@ func TestNewPath(t *testing.T) {
 		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[].Id",
 		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[+].Id",
 		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[12].Id",
+		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[first].Id",
+		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[last].Id",
+		"CdtrPmtActvtnReq.PmtInf.Dbtr.Id.PrvtId.Othr[err].Id",
 	}
 
 	for i, s := range sarr {
