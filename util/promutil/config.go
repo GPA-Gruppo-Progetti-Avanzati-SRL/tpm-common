@@ -37,18 +37,18 @@ type MetricInfo struct {
 }
 
 type MetricsConfig struct {
-	Namespace  string
-	Subsystem  string
-	Collectors []MetricConfig
+	Namespace  string         `yaml:"namespace" mapstructure:"namespace" json:"namespace"`
+	Subsystem  string         `yaml:"subsystem" mapstructure:"subsystem" json:"subsystem"`
+	Collectors []MetricConfig `yaml:"collectors" mapstructure:"collectors" json:"collectors"`
 }
 
 type MetricConfig struct {
-	Id      string
-	Name    string
-	Help    string
-	Labels  string
-	Type    string
-	Buckets HistogramBucketConfig
+	Id      string                `yaml:"id" mapstructure:"id" json:"id"`
+	Name    string                `yaml:"name" mapstructure:"name" json:"name"`
+	Help    string                `yaml:"help" mapstructure:"help" json:"help"`
+	Labels  string                `yaml:"labels" mapstructure:"labels" json:"labels"`
+	Type    string                `yaml:"type" mapstructure:"type" json:"type"`
+	Buckets HistogramBucketConfig `yaml:"buckets" mapstructure:"buckets" json:"buckets"`
 }
 
 /*type MetricsHistogramConfig struct {
@@ -60,8 +60,8 @@ type MetricConfig struct {
 */
 
 type HistogramBucketConfig struct {
-	Type        string
-	Start       float64
-	WidthFactor float64
-	Count       int
+	Type        string  `yaml:"type" mapstructure:"type" json:"type"`
+	Start       float64 `yaml:"start" mapstructure:"start" json:"start"`
+	WidthFactor float64 `yaml:"width-factor" mapstructure:"width-factor" json:"width-factor"`
+	Count       int     `yaml:"count" mapstructure:"count" json:"count"`
 }
