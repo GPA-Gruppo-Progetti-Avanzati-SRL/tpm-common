@@ -108,7 +108,7 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 
 	var lbs []string
 	if counterMetrics.Labels != "" {
-		strings.Split(counterMetrics.Labels, ",")
+		lbs = strings.Split(counterMetrics.Labels, ",")
 	}
 	c := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -149,6 +149,10 @@ func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *M
 		metricSubsystem = fmt.Sprintf(subsystem, opName)
 	}
 
+	var lbs []string
+	if gaugeMetrics.Labels != "" {
+		lbs = strings.Split(gaugeMetrics.Labels, ",")
+	}
 	c := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -156,7 +160,7 @@ func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *M
 			Name:      gaugeMetrics.Name,
 			Help:      gaugeMetrics.Help,
 		},
-		strings.Split(gaugeMetrics.Labels, ","))
+		lbs)
 
 	err := prometheus.Register(c)
 	if err != nil {
@@ -198,13 +202,18 @@ func NewHistogram(namespace string, subsystem string, opName string, histogramMe
 		bck = prometheus.DefBuckets
 	}
 
+	var lbs []string
+	if histogramMetrics.Labels != "" {
+		lbs = strings.Split(histogramMetrics.Labels, ",")
+	}
+
 	h := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: namespace,
 		Subsystem: metricSubsystem,
 		Name:      histogramMetrics.Name,
 		Help:      histogramMetrics.Help,
 		Buckets:   bck,
-	}, strings.Split(histogramMetrics.Labels, ","))
+	}, lbs)
 
 	err := prometheus.Register(h)
 	if err != nil {
