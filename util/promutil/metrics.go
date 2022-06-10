@@ -106,6 +106,10 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 		metricSubsystem = fmt.Sprintf(subsystem, opName)
 	}
 
+	var lbs []string
+	if counterMetrics.Labels != "" {
+		strings.Split(counterMetrics.Labels, ",")
+	}
 	c := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: namespace,
@@ -113,7 +117,7 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 			Name:      counterMetrics.Name,
 			Help:      counterMetrics.Help,
 		},
-		strings.Split(counterMetrics.Labels, ","))
+		lbs)
 
 	err := prometheus.Register(c)
 	if err != nil {
