@@ -54,6 +54,8 @@ func SetMetricValueById(collectors []MetricInfo, id string, v float64, labels pr
 
 func setMetricValue(c MetricInfo, v float64, labels prometheus.Labels) {
 
+	labels = fixLabels(c.Labels, labels)
+
 	switch c.Type {
 	case MetricTypeCounter:
 		cnter := c.Collector.(*prometheus.CounterVec)
@@ -65,7 +67,48 @@ func setMetricValue(c MetricInfo, v float64, labels prometheus.Labels) {
 		hist := c.Collector.(*prometheus.HistogramVec)
 		hist.With(labels).Observe(v)
 	}
+}
 
+func fixLabels(cfgLabels string, providedLabels prometheus.Labels) prometheus.Labels {
+	if cfgLabels == "" {
+		return nil
+	}
+
+	lblsArr := strings.Split(cfgLabels, ",")
+	if len(providedLabels) == 0 {
+		providedLabels = make(prometheus.Labels)
+		for _, l := range lblsArr {
+			providedLabels[l] = "none"
+		}
+
+		return providedLabels
+	}
+
+	// Equal size..... might match.... need to check...
+	if len(providedLabels) == len(lblsArr) {
+		ok := true
+		for _, l := range lblsArr {
+			if _, ok = providedLabels[l]; !ok {
+				break
+			}
+		}
+
+		if ok {
+			return providedLabels
+		}
+	}
+
+	// different size or don't match....
+	newLabels := make(prometheus.Labels)
+	for _, l := range lblsArr {
+		if v, ok := providedLabels[l]; ok {
+			newLabels[l] = v
+		} else {
+			newLabels[l] = "none"
+		}
+	}
+
+	return newLabels
 }
 
 func NewCollector(namespace string, subsystem string, opName string, metricConfig *MetricConfig) (prometheus.Collector, error) {
