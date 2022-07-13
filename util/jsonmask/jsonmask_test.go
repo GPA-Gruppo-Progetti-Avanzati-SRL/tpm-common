@@ -156,3 +156,18 @@ func TestRead(t *testing.T) {
 
 	t.Log(string(masked))
 }
+
+var errData = []byte(`
+[0] Get "https://tpm-router-card-inquiry-api-common-card.app.coll2.ocprm.testposte:443/listaCarte/api
+/v1/carta/012965854": dial tcp: lookup tpm-router-card-inquiry-api-common-card.app.coll2.ocprm.testposte
+: no such host`)
+
+func TestError(t *testing.T) {
+	jm, err := jsonmask.NewJsonMask(jsonmask.FromData(cfgData))
+	require.NoError(t, err)
+
+	masked, err := jm.Mask("request", errData)
+	require.NoError(t, err)
+
+	t.Log(string(masked))
+}
