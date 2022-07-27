@@ -171,3 +171,19 @@ func TestError(t *testing.T) {
 
 	t.Log(string(masked))
 }
+
+var errData1 = []byte(`
+{
+"aliasCarta" : 00123456
+}
+`)
+
+func TestError1(t *testing.T) {
+	jm, err := jsonmask.NewJsonMask(jsonmask.FromData(cfgData))
+	require.NoError(t, err)
+
+	masked, err := jm.Mask("request", errData1)
+	require.NoError(t, err)
+
+	t.Log(string(masked))
+}
