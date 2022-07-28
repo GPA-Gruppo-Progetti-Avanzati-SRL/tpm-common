@@ -24,6 +24,7 @@ func TestIsNumeric(t *testing.T) {
 type InputWanted struct {
 	input  string
 	wanted string
+	param  int
 }
 
 func TestStringJoin(t *testing.T) {
@@ -45,6 +46,26 @@ func TestStringJoin(t *testing.T) {
 	t.Log(ns)
 }
 
+func TestMaxLengh(t *testing.T) {
+
+	assert := assert.New(t)
+	var s []InputWanted
+
+	s = []InputWanted{
+		{input: "0123456789", wanted: "01234", param: 5},
+		{input: "0123456789", wanted: "0123456789", param: 10},
+		{input: "0123456789", wanted: "0123456789", param: -10},
+		{input: "0123456789", wanted: "789", param: -3},
+		{input: "0123456789", wanted: "0123456789", param: 0},
+	}
+
+	for _, iw := range s {
+		v, _ := util.ToMaxLength(iw.input, iw.param)
+		fmt.Printf("%s (%d) --> %s\n", iw.input, iw.param, v)
+		assert.Equal(iw.wanted, v, "to max length: strings should match")
+	}
+}
+
 func TestStrings(t *testing.T) {
 
 	assert := assert.New(t)
@@ -54,12 +75,12 @@ func TestStrings(t *testing.T) {
 
 	// Decamelize
 	s = []InputWanted{
-		{"innerHTML", "inner_html"},
-		{"action_name", "action_name"},
-		{"css-class-name", "css-class-name"},
-		{"my favorite items", "my favorite items"},
-		{"CONTO BANCOPOSTA RETAIL", "conto bancoposta retail"},
-		{"camt_029_001_09", "camt_029_001_09"},
+		{input: "innerHTML", wanted: "inner_html"},
+		{input: "action_name", wanted: "action_name"},
+		{input: "css-class-name", wanted: "css-class-name"},
+		{input: "my favorite items", wanted: "my favorite items"},
+		{input: "CONTO BANCOPOSTA RETAIL", wanted: "conto bancoposta retail"},
+		{input: "camt_029_001_09", wanted: "camt_029_001_09"},
 	}
 
 	for _, iw := range s {
@@ -70,12 +91,12 @@ func TestStrings(t *testing.T) {
 
 	// Dasherize
 	s = []InputWanted{
-		{"innerHTML", "inner-html"},
-		{"action_name", "action-name"},
-		{"css-class-name", "css-class-name"},
-		{"my favorite items", "my-favorite-items"},
-		{"CONTO BANCOPOSTA RETAIL", "conto-bancoposta-retail"},
-		{"camt_029_001_09", "camt-029-001-09"},
+		{input: "innerHTML", wanted: "inner-html"},
+		{input: "action_name", wanted: "action-name"},
+		{input: "css-class-name", wanted: "css-class-name"},
+		{input: "my favorite items", wanted: "my-favorite-items"},
+		{input: "CONTO BANCOPOSTA RETAIL", wanted: "conto-bancoposta-retail"},
+		{input: "camt_029_001_09", wanted: "camt-029-001-09"},
 	}
 
 	for _, iw := range s {
@@ -86,14 +107,14 @@ func TestStrings(t *testing.T) {
 
 	// Camelize
 	s = []InputWanted{
-		{"innerHTML", "innerHTML"},
-		{"action_name", "actionName"},
-		{"css-class-name", "cssClassName"},
-		{"my favorite items", "myFavoriteItems"},
-		{"My Favorite Items", "myFavoriteItems"},
-		{"CONTO BANCOPOSTA RETAIL", "cONTOBANCOPOSTARETAIL"},
-		{"camt_029_001_09", "camt02900109"},
-		{"camt.029.001.09", "camt02900109"},
+		{input: "innerHTML", wanted: "innerHTML"},
+		{input: "action_name", wanted: "actionName"},
+		{input: "css-class-name", wanted: "cssClassName"},
+		{input: "my favorite items", wanted: "myFavoriteItems"},
+		{input: "My Favorite Items", wanted: "myFavoriteItems"},
+		{input: "CONTO BANCOPOSTA RETAIL", wanted: "cONTOBANCOPOSTARETAIL"},
+		{input: "camt_029_001_09", wanted: "camt02900109"},
+		{input: "camt.029.001.09", wanted: "camt02900109"},
 	}
 
 	for _, iw := range s {
@@ -104,13 +125,13 @@ func TestStrings(t *testing.T) {
 
 	// Classify
 	s = []InputWanted{
-		{"innerHTML", "InnerHTML"},
-		{"action_name", "ActionName"},
-		{"css-class-name", "CssClassName"},
-		{"my favorite items", "MyFavoriteItems"},
-		{"CONTO BANCOPOSTA RETAIL", "CONTOBANCOPOSTARETAIL"},
-		{"camt_029_001_09", "Camt02900109"},
-		{"camt.029.001.09", "Camt.029.001.09"},
+		{input: "innerHTML", wanted: "InnerHTML"},
+		{input: "action_name", wanted: "ActionName"},
+		{input: "css-class-name", wanted: "CssClassName"},
+		{input: "my favorite items", wanted: "MyFavoriteItems"},
+		{input: "CONTO BANCOPOSTA RETAIL", wanted: "CONTOBANCOPOSTARETAIL"},
+		{input: "camt_029_001_09", wanted: "Camt02900109"},
+		{input: "camt.029.001.09", wanted: "Camt.029.001.09"},
 	}
 
 	for _, iw := range s {
@@ -121,12 +142,12 @@ func TestStrings(t *testing.T) {
 
 	// Underscore
 	s = []InputWanted{
-		{"innerHTML", "inner_html"},
-		{"action_name", "action_name"},
-		{"css-class-name", "css_class_name"},
-		{"my favorite items", "my_favorite_items"},
-		{"CONTO BANCOPOSTA RETAIL", "conto_bancoposta_retail"},
-		{"camt_029_001_09", "camt_029_001_09"},
+		{input: "innerHTML", wanted: "inner_html"},
+		{input: "action_name", wanted: "action_name"},
+		{input: "css-class-name", wanted: "css_class_name"},
+		{input: "my favorite items", wanted: "my_favorite_items"},
+		{input: "CONTO BANCOPOSTA RETAIL", wanted: "conto_bancoposta_retail"},
+		{input: "camt_029_001_09", wanted: "camt_029_001_09"},
 	}
 
 	for _, iw := range s {

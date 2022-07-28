@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -32,6 +33,26 @@ func StringJoin(args []string, sep string, maxLength int) string {
 	}
 
 	return s
+}
+
+func ToMaxLength(s string, maxLength int) (string, bool) {
+	if maxLength == 0 {
+		log.Trace().Int("max-length", maxLength).Msg("tpm-common/util/ToMaxLength - maxLength is zero..... string unmodified")
+		return s, false
+	}
+
+	truncated := false
+	absMaxLength := IntAbs(maxLength)
+	if len(s) > absMaxLength {
+		truncated = true
+		if maxLength > 0 {
+			s = s[0:maxLength]
+		} else {
+			s = s[len(s)+maxLength:]
+		}
+	}
+
+	return s, truncated
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
