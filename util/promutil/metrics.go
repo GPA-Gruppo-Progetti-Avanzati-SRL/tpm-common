@@ -8,8 +8,29 @@ import (
 	"strings"
 )
 
-func FindCollectorByName(collectors []MetricInfo, n string) MetricInfo {
-	for _, c := range collectors {
+type MetricRegistry []MetricInfo
+
+func InitMetricsRegistry(metrics MetricsConfig) (MetricRegistry, error) {
+
+	var metricsRegistry []MetricInfo
+	for _, mCfg := range metrics.Collectors {
+		if mc, err := NewCollector(metrics.Namespace, metrics.Subsystem, mCfg.Name, &mCfg); err != nil {
+			log.Error().Err(err).Str("name", mCfg.Name).Msg("error creating metric")
+			return nil, err
+		} else {
+			metricsRegistry = append(metricsRegistry, MetricInfo{Type: mCfg.Type, Id: mCfg.Id, Name: mCfg.Name, Collector: mc, Labels: mCfg.Labels})
+		}
+	}
+
+	if len(metricsRegistry) == 0 {
+		log.Warn().Msg("metrics registry is empty")
+	}
+
+	return metricsRegistry, nil
+}
+
+func (r MetricRegistry) FindCollectorByName(n string) MetricInfo {
+	for _, c := range r {
 		if c.Name == n {
 			return c
 		}
@@ -18,8 +39,8 @@ func FindCollectorByName(collectors []MetricInfo, n string) MetricInfo {
 	return MetricInfo{}
 }
 
-func FindCollectorById(collectors []MetricInfo, id string) MetricInfo {
-	for _, c := range collectors {
+func (r MetricRegistry) FindCollectorById(id string) MetricInfo {
+	for _, c := range r {
 		if c.Id == id {
 			return c
 		}
@@ -28,8 +49,8 @@ func FindCollectorById(collectors []MetricInfo, id string) MetricInfo {
 	return MetricInfo{}
 }
 
-func SetMetricValueByName(collectors []MetricInfo, n string, v float64, labels prometheus.Labels) error {
-	if c := FindCollectorByName(collectors, n); c.Type != "" {
+func (r MetricRegistry) SetMetricValueByName(n string, v float64, labels prometheus.Labels) error {
+	if c := r.FindCollectorByName(n); c.Type != "" {
 		setMetricValue(c, v, labels)
 	} else {
 		err := errors.New("cannot find collector by name")
@@ -40,8 +61,8 @@ func SetMetricValueByName(collectors []MetricInfo, n string, v float64, labels p
 	return nil
 }
 
-func SetMetricValueById(collectors []MetricInfo, id string, v float64, labels prometheus.Labels) error {
-	if c := FindCollectorById(collectors, id); c.Type != "" {
+func (r MetricRegistry) SetMetricValueById(id string, v float64, labels prometheus.Labels) error {
+	if c := r.FindCollectorById(id); c.Type != "" {
 		setMetricValue(c, v, labels)
 	} else {
 		err := errors.New("cannot find collector by id")
