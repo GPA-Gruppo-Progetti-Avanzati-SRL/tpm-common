@@ -23,7 +23,7 @@ func TestResolveConfigValue(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		t.Logf("resolving %s --> %s", s, util.ResolveConfigValue(s))
+		t.Logf("resolving %s --> %s", s, util.ResolveConfigValue([]byte(s)))
 	}
 }
 
