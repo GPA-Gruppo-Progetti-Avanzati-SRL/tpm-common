@@ -11,8 +11,7 @@ import (
 
 var ConfigValueRegexp = regexp.MustCompile("(\\$\\{([a-zA-Z][a-zA-Z0-9_]*)\\})")
 
-func ResolveConfigValue(v []byte) string {
-
+func ResolveConfigValueToByteArray(v []byte) []byte {
 	matches := ConfigValueRegexp.FindAllSubmatch(v, -1)
 
 	sv := string(v)
@@ -23,7 +22,21 @@ func ResolveConfigValue(v []byte) string {
 		}
 	}
 
-	return sv
+	return []byte(sv)
+}
+
+func ResolveConfigValueToString(v string) string {
+
+	matches := ConfigValueRegexp.FindAllSubmatch([]byte(v), -1)
+
+	for _, m := range matches {
+		env, ok := os.LookupEnv(string(m[2]))
+		if ok {
+			v = strings.ReplaceAll(v, string(m[1]), env)
+		}
+	}
+
+	return v
 }
 
 func ReadFileAndResolveEnvVars(cfgFile string) ([]byte, error) {
@@ -44,7 +57,7 @@ func ReadFileAndResolveEnvVars(cfgFile string) ([]byte, error) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		sb.WriteString(ResolveConfigValue([]byte(scanner.Text())))
+		sb.WriteString(ResolveConfigValueToString(scanner.Text()))
 		sb.WriteString("\n")
 	}
 
@@ -123,7 +136,7 @@ func ReadConfig(fileConfigPathEnvVar string, defaultConfigContent []byte, resolv
 	}
 
 	if len(defaultConfigContent) > 0 {
-		return "", []byte(ResolveConfigValue(defaultConfigContent)), nil
+		return "", ResolveConfigValueToByteArray(defaultConfigContent), nil
 	}
 
 	return "", nil, fmt.Errorf("the config path variable %s has not been set; please set", fileConfigPathEnvVar)
