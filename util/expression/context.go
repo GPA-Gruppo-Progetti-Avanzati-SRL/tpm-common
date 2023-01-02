@@ -16,25 +16,22 @@ type Option func(r *Context) error
 
 type Context struct {
 	vars  map[string]interface{}
-	input interface{}
+	input map[string]interface{}
 }
 
 func WithVars(m map[string]interface{}) Option {
 	return func(r *Context) error {
-		if len(r.vars) > 0 {
-			for n, i := range m {
-				r.vars[n] = i
-			}
-		} else {
-			r.vars = m
-		}
 
 		if len(r.vars) == 0 {
-			r.vars = BuiltinFuncMap()
-		} else {
-			for n, i := range BuiltinFuncMap() {
-				r.vars[n] = i
-			}
+			r.vars = make(map[string]interface{})
+		}
+
+		for n, i := range m {
+			r.vars[n] = i
+		}
+
+		for n, i := range BuiltinFuncMap() {
+			r.vars[n] = i
 		}
 
 		return nil
@@ -43,13 +40,15 @@ func WithVars(m map[string]interface{}) Option {
 
 func WithFuncMap(fm map[string]interface{}) Option {
 	return func(r *Context) error {
-		if len(r.vars) > 0 {
-			for n, i := range fm {
-				r.vars[n] = i
-			}
-		} else {
-			r.vars = fm
+
+		if len(r.vars) == 0 {
+			r.vars = make(map[string]interface{})
 		}
+
+		for n, i := range fm {
+			r.vars[n] = i
+		}
+
 		return nil
 	}
 }
@@ -57,7 +56,7 @@ func WithFuncMap(fm map[string]interface{}) Option {
 func WithJsonInput(aBody []byte) Option {
 	return func(r *Context) error {
 		if aBody != nil {
-			v := interface{}(nil)
+			v := make(map[string]interface{})
 			err := json.Unmarshal(aBody, &v)
 			if err == nil {
 				r.input = v
@@ -72,7 +71,12 @@ func WithJsonInput(aBody []byte) Option {
 
 func WithMapInput(aBody map[string]interface{}) Option {
 	return func(r *Context) error {
-		r.input = aBody
+
+		r.input = make(map[string]interface{})
+		for n, i := range aBody {
+			r.input[n] = i
+		}
+
 		return nil
 	}
 }
