@@ -98,6 +98,27 @@ const (
 	AllMustMatch EvaluationMode = "all-must-match"
 )
 
+func (pvr *Context) EvalOne(v string) (interface{}, error) {
+
+	if v == "" {
+		return "", nil
+	}
+
+	var err error
+
+	v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	if err != nil {
+		return "", err
+	}
+
+	isExpr := IsExpression(v)
+	if isExpr {
+		return gval.Evaluate(v, pvr)
+	}
+
+	return v, nil
+}
+
 func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (bool, int, error) {
 
 	if len(varExpressions) == 0 {

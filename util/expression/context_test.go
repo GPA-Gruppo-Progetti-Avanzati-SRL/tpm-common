@@ -42,6 +42,28 @@ var j = []byte(`
 `)
 
 func TestContextEvaluation(t *testing.T) {
+	arr := []struct {
+		expr     string
+		expected interface{}
+	}{
+		{
+			expr:     `{$.beneficiario.numero}`,
+			expected: "8188602",
+		},
+	}
+
+	exprCtx, err := expression.NewContext(expression.WithJsonInput(j), expression.WithVars(map[string]interface{}{"var01": "OK"}))
+	require.NoError(t, err)
+
+	for i, input := range arr {
+		v, err := exprCtx.EvalOne(input.expr)
+		require.NoError(t, err)
+		require.EqualValues(t, input.expected, v, "[%d] Expected doesn't match actual", i)
+	}
+
+}
+
+func TestContextBoolEvaluation(t *testing.T) {
 
 	arr := []struct {
 		rules    []string
