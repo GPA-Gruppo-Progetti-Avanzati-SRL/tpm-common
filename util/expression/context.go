@@ -123,10 +123,10 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 	return v, nil
 }
 
-func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (bool, int, error) {
+func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (bool, error) {
 
 	if len(varExpressions) == 0 {
-		return false, -1, nil
+		return false, nil
 	}
 
 	foundNdx := -1
@@ -135,7 +135,7 @@ func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (
 		// The empty expression evaluates to true.
 		boolVal, err := pvr.BoolEvalOne(v)
 		if err != nil {
-			return false, ndx, err
+			return false, err
 		}
 
 		if boolVal {
@@ -146,12 +146,12 @@ func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (
 						varExpressions[foundNdx], foundNdx,
 						varExpressions[ndx], ndx,
 						mode)
-					return false, ndx, nil
+					return false, nil
 				}
 
 				foundNdx = ndx
 			case AtLeastOne:
-				return true, ndx, nil
+				return true, nil
 			case AllMustMatch:
 				foundNdx = 0
 			}
@@ -160,15 +160,15 @@ func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (
 			log.Trace().Msgf("expression (%s) at  %d evaluate to false and violate the %s mode",
 				varExpressions[ndx], ndx,
 				mode)
-			return false, ndx, nil
+			return false, nil
 		}
 	}
 
 	if (foundNdx >= 0 && mode == ExactlyOne) || mode == AllMustMatch {
-		return true, foundNdx, nil
+		return true, nil
 	}
 
-	return false, -1, nil
+	return false, nil
 }
 
 func (pvr *Context) BoolEvalOne(v string) (bool, error) {

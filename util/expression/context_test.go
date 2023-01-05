@@ -86,13 +86,13 @@ func TestContextBoolEvaluation(t *testing.T) {
 	require.NoError(t, err)
 
 	for i, input := range arr {
-		found, ndx, err := exprCtx.BoolEvalMany(input.rules, input.mode)
+		found, err := exprCtx.BoolEvalMany(input.rules, input.mode)
 		require.NoError(t, err)
 		require.EqualValues(t, input.expected, found, "Expected doesn't match actual")
 		if found {
-			t.Logf("[expr:%d] evaluated to true, first is: %d", i, ndx)
+			t.Logf("[expr:%d] evaluated to true", i)
 		} else {
-			t.Logf("[expr:%d] evaluated to false", ndx)
+			t.Logf("[expr:%d] evaluated to false", i)
 		}
 	}
 
