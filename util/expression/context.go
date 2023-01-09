@@ -102,6 +102,15 @@ const (
 	AllMustMatch EvaluationMode = "all-must-match"
 )
 
+func (pvr *Context) Add(n string, v interface{}) error {
+	if pvr.vars == nil {
+		pvr.vars = make(map[string]interface{})
+	}
+
+	pvr.vars[n] = v
+	return nil
+}
+
 func (pvr *Context) EvalOne(v string) (interface{}, error) {
 
 	if v == "" {
