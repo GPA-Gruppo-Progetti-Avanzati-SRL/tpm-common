@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -43,7 +44,7 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 
 	var clientOptions Config
 	if cfg == nil {
-		clientOptions = Config{TraceOpName: "rest-client"}
+		clientOptions = Config{TraceRequestName: "rest-client"}
 	} else {
 		clientOptions = *cfg
 	}
@@ -57,13 +58,9 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 		span: clientOptions.Span,
 	}
 
-	if clientOptions.NestTraceSpans {
-		if s.span == nil {
-			s.span = opentracing.StartSpan(
-				clientOptions.TraceOpName,
-			)
-			s.spanOwned = true
-		}
+	if clientOptions.TraceGroupName != "" {
+		s.span = startSpan(clientOptions.Span, clientOptions.TraceGroupName)
+		s.spanOwned = true
 	}
 
 	s.restClient = resty.New()
@@ -128,7 +125,7 @@ func (s *Client) Close() {
 	}
 }
 
-func (s *Client) Execute(reqId string, reqDef *Request) (*Entry, error) {
+func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Request) (*Entry, error) {
 
 	now := time.Now()
 	e := &Entry{
@@ -138,7 +135,14 @@ func (s *Client) Execute(reqId string, reqDef *Request) (*Entry, error) {
 		Request:         reqDef,
 	}
 
-	reqSpan := s.getRequestSpan()
+	var reqSpanName string
+	if s.cfg.TraceRequestName != "" {
+		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, opName, 1)
+		reqSpanName = strings.Replace(reqSpanName, RequestTraceNameRequestIdPlaceHolder, opName, 1)
+	} else {
+		reqSpanName = strings.Join([]string{opName, reqId}, "_")
+	}
+	reqSpan := startSpan(s.span, reqSpanName)
 	defer reqSpan.Finish()
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
@@ -159,7 +163,7 @@ func (s *Client) Execute(reqId string, reqDef *Request) (*Entry, error) {
 		resp, err = req.Put(u)
 	}
 
-	s.setSpanTags(reqSpan, u, reqDef.Method, resp.StatusCode(), err)
+	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, resp.StatusCode(), err)
 
 	var r *Response
 	if err == nil {
@@ -239,6 +243,7 @@ func (s *Client) getRequestWithSpan(reqDef *Request, reqSpan opentracing.Span) *
 	return req
 }
 
+/*
 func (s *Client) getRequestSpan() opentracing.Span {
 
 	var reqSpan opentracing.Span
@@ -257,12 +262,44 @@ func (s *Client) getRequestSpan() opentracing.Span {
 
 	return reqSpan
 }
+*/
 
-func (s *Client) setSpanTags(reqSpan opentracing.Span, endpoint, method string, statusCode int, err error) {
+func startSpan(parentSpan opentracing.Span, spanName string) opentracing.Span {
+
+	var span opentracing.Span
+
+	if parentSpan != nil {
+		parentCtx := parentSpan.Context()
+		span = opentracing.StartSpan(
+			spanName,
+			opentracing.ChildOf(parentCtx),
+		)
+	} else {
+		span = opentracing.StartSpan(
+			spanName,
+		)
+	}
+
+	return span
+}
+
+func (s *Client) setSpanTags(reqSpan opentracing.Span, opName, reqId, lraId, endpoint, method string, statusCode int, err error) {
 
 	reqSpan.SetTag(util.HttpUrlTraceTag, endpoint)
 	reqSpan.SetTag(util.HttpMethodTraceTag, method)
 	reqSpan.SetTag(util.HttStatusCodeTraceTag, statusCode)
+
+	if opName != "" {
+		reqSpan.SetTag(OpNameTraceTag, opName)
+	}
+
+	if lraId != "" {
+		reqSpan.SetTag(LraHttpContextTraceTag, lraId)
+	}
+
+	if reqId != "" {
+		reqSpan.SetTag(RequestIdTraceTag, reqId)
+	}
 
 	if err != nil {
 		reqSpan.SetTag("error", err.Error())

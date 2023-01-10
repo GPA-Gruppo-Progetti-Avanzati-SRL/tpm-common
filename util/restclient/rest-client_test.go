@@ -27,12 +27,12 @@ func TestRestClient(t *testing.T) {
 		RestTimeout:      15 * time.Second,
 		SkipVerify:       true,
 		Headers:          []restclient.Header{{Name: "x-api-key", Value: "pippo"}},
-		TraceOpName:      "test-rest-client",
+		TraceGroupName:   "rest-client",
+		TraceRequestName: "rest-client-" + restclient.RequestTraceNameOpNamePlaceHolder,
 		RetryCount:       0,
 		RetryWaitTime:    0,
 		RetryMaxWaitTime: 0,
 		RetryOnHttpError: nil,
-		NestTraceSpans:   true,
 		Span:             nil,
 	}
 
@@ -57,7 +57,7 @@ func TestRestClient(t *testing.T) {
 	client := restclient.NewClient(&cfg)
 	defer client.Close()
 
-	harEntry, err := client.Execute("req-id", &request)
+	harEntry, err := client.Execute("op2", "req-id", "", &request)
 	var opts []restclient.HarBuilderOption
 	opts = append(opts, restclient.WithHarEntry(harEntry))
 	if err != nil {
@@ -65,7 +65,7 @@ func TestRestClient(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	harEntry, err = client.Execute("req-id", &request)
+	harEntry, err = client.Execute("op", "req-id", "lra-id", &request)
 	opts = append(opts, restclient.WithHarEntry(harEntry))
 	logHAR(t, restclient.NewHAR(opts...))
 	require.NoError(t, err)
