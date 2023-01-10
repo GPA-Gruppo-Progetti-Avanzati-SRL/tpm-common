@@ -138,7 +138,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 	var reqSpanName string
 	if s.cfg.TraceRequestName != "" {
 		reqSpanName = strings.Replace(s.cfg.TraceRequestName, RequestTraceNameOpNamePlaceHolder, opName, 1)
-		reqSpanName = strings.Replace(reqSpanName, RequestTraceNameRequestIdPlaceHolder, opName, 1)
+		reqSpanName = strings.Replace(reqSpanName, RequestTraceNameRequestIdPlaceHolder, reqId, 1)
 	} else {
 		reqSpanName = strings.Join([]string{opName, reqId}, "_")
 	}
