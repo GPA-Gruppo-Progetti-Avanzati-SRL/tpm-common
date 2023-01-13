@@ -2,7 +2,6 @@ package restclient
 
 import (
 	"encoding/json"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -118,11 +117,11 @@ type Log struct {
 	Comment string   `json:"comment,omitempty"` // A comment provided by the user or the application.
 }
 
+type NameValuePairs []NameValuePair
+
 // NameValuePair describes a name/value pair.
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/HAR#type-NameValuePair
-type NameValuePairs []NameValuePair
-
 type NameValuePair struct {
 	Name    string `json:"name"`              // Name of the pair.
 	Value   string `json:"value"`             // Value of the pair.
@@ -316,7 +315,7 @@ func (req *Request) HasBody() bool {
 	return req.PostData != nil && len(req.PostData.Data) > 0
 }
 
-func (req Request) String() string {
+func (req *Request) String() string {
 	b, err := json.Marshal(req)
 	if err != nil {
 		return err.Error()
@@ -325,38 +324,20 @@ func (req Request) String() string {
 	return string(b)
 }
 
-func NewRequest(idw string, method string, url string, body []byte, headers http.Header, params NameValuePairs) (*Request, error) {
+func (req *Request) SetHeader(n string, v string) {
 
-	var hs []NameValuePair
-	for n, h := range headers {
-		for i := range h {
-			hs = append(hs, NameValuePair{Name: n, Value: h[i]})
+	n = strings.ToLower(n)
+	for i, nv := range req.Headers {
+		if strings.ToLower(nv.Name) == n {
+			req.Headers[i].Value = v
+			return
 		}
 	}
 
-	pars := make([]Param, 0)
-	for _, h := range params {
-		pars = append(pars, Param{Name: h.Name, Value: h.Value})
-
-	}
-
-	req := &Request{
-		Method:      method,
-		URL:         url,
-		HTTPVersion: "1.1",
-		Headers:     hs,
-		HeadersSize: -1,
-		Cookies:     []Cookie{},
-		QueryString: []NameValuePair{},
-		BodySize:    int64(len(body)),
-		PostData: &PostData{
-			MimeType: "application/json",
-			Data:     body,
-			Params:   pars,
-		},
-	}
-
-	return req, nil
+	req.Headers = append(req.Headers, NameValuePair{
+		Name:  n,
+		Value: v,
+	})
 }
 
 // Response contains detailed info about the response.

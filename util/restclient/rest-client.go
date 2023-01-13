@@ -59,7 +59,7 @@ func NewClient(cfg *Config, opts ...Option) *Client {
 	}
 
 	if clientOptions.TraceGroupName != "" {
-		s.span = startSpan(clientOptions.Span, clientOptions.TraceGroupName)
+		s.span = s.startSpan(clientOptions.Span, nil, clientOptions.TraceGroupName)
 		s.spanOwned = true
 	}
 
@@ -125,7 +125,65 @@ func (s *Client) Close() {
 	}
 }
 
-func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Request) (*Entry, error) {
+func (s *Client) NewRequest(method string, url string, body []byte, headers NameValuePairs, params NameValuePairs) (*Request, error) {
+
+	var hs []NameValuePair
+
+	// Default content-type used if some thing else is not found.
+	ct := "application/json"
+
+	// Setting first the default headers... in principle I should avoid dups....
+	for _, h := range s.cfg.Headers {
+		hs = append(hs, NameValuePair{Name: h.Name, Value: h.Value})
+		if strings.ToLower(h.Name) == "content-type" {
+			ct = h.Value
+		}
+	}
+
+	for _, h := range headers {
+		hs = append(hs, NameValuePair{Name: h.Name, Value: h.Value})
+		if strings.ToLower(h.Name) == "content-type" {
+			ct = h.Value
+		}
+	}
+
+	/*
+		Signature was http.Headers
+		for n, h := range headers {
+			for i := range h {
+				hs = append(hs, NameValuePair{Name: n, Value: h[i]})
+				if strings.ToLower(n) == "content-type" {
+					ct = h[i]
+				}
+			}
+		}
+	*/
+
+	pars := make([]Param, 0)
+	for _, h := range params {
+		pars = append(pars, Param{Name: h.Name, Value: h.Value})
+	}
+
+	req := &Request{
+		Method:      method,
+		URL:         url,
+		HTTPVersion: "1.1",
+		Headers:     hs,
+		HeadersSize: -1,
+		Cookies:     []Cookie{},
+		QueryString: []NameValuePair{},
+		BodySize:    int64(len(body)),
+		PostData: &PostData{
+			MimeType: ct,
+			Data:     body,
+			Params:   pars,
+		},
+	}
+
+	return req, nil
+}
+
+func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Request, requestParentSpan opentracing.Span) (*Entry, error) {
 
 	now := time.Now()
 	e := &Entry{
@@ -142,7 +200,8 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 	} else {
 		reqSpanName = strings.Join([]string{opName, reqId}, "_")
 	}
-	reqSpan := startSpan(s.span, reqSpanName)
+
+	reqSpan := s.startSpan(s.span, requestParentSpan, reqSpanName)
 	defer reqSpan.Finish()
 
 	// reqDef.Headers = append(reqDef.Headers, NameValuePair{Name: "Accept", Value: "application/json"})
@@ -230,11 +289,6 @@ func (s *Client) getRequestWithSpan(reqDef *Request, reqSpan opentracing.Span) *
 		}
 	}
 
-	// Setting first the default headers.
-	for _, h := range s.cfg.Headers {
-		req.SetHeader(h.Name, h.Value)
-	}
-
 	// Setting more specific headers next
 	for _, h := range reqDef.Headers {
 		req.SetHeader(h.Name, h.Value)
@@ -264,9 +318,18 @@ func (s *Client) getRequestSpan() opentracing.Span {
 }
 */
 
-func startSpan(parentSpan opentracing.Span, spanName string) opentracing.Span {
+func (s *Client) startSpan(groupParentSpan, requestParentSpan opentracing.Span, spanName string) opentracing.Span {
 
+	const semLogContext = "tpm-common/rest-client"
 	var span opentracing.Span
+
+	parentSpan := groupParentSpan
+	if requestParentSpan != nil {
+		parentSpan = requestParentSpan
+		if groupParentSpan != nil {
+			log.Warn().Str("trace-group-name", s.cfg.TraceGroupName).Msg(semLogContext + " configuration issue.... a parent span has been set on the request but a group-span is also present")
+		}
+	}
 
 	if parentSpan != nil {
 		parentCtx := parentSpan.Context()

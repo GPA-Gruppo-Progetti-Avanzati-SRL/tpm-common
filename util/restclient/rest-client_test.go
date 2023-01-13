@@ -43,21 +43,26 @@ func TestRestClient(t *testing.T) {
 	urlBuilder.WithPath("/api/v1/token-contexts/BPMIFI/tokens")
 
 	reqBody := []byte("{ \"msg\": \"hello world\"}")
-	request := restclient.Request{
-		Method:      http.MethodPost,
-		URL:         urlBuilder.Url(),
-		HTTPVersion: "1.1",
-		Cookies:     []restclient.Cookie{},
-		Headers:     []restclient.NameValuePair{{Name: "Accept", Value: "application/json"}},
-		QueryString: restclient.NameValuePairs{},
-		PostData:    &restclient.PostData{MimeType: "application/json", Data: reqBody, Params: []restclient.Param{}},
-		Comment:     "",
-	}
+	/*
+		request := restclient.Request{
+			Method:      http.MethodPost,
+			URL:         urlBuilder.Url(),
+			HTTPVersion: "1.1",
+			Cookies:     []restclient.Cookie{},
+			Headers:     []restclient.NameValuePair{{Name: "Accept", Value: "application/json"}},
+			QueryString: restclient.NameValuePairs{},
+			PostData:    &restclient.PostData{MimeType: "application/json", Data: reqBody, Params: []restclient.Param{}},
+			Comment:     "",
+		}
+	*/
 
 	client := restclient.NewClient(&cfg)
 	defer client.Close()
 
-	harEntry, err := client.Execute("op2", "req-id", "", &request)
+	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, []restclient.NameValuePair{{Name: "Content-type", Value: "application/json"}, {Name: "Accept", Value: "application/json"}}, nil)
+	require.NoError(t, err)
+
+	harEntry, err := client.Execute("op2", "req-id", "", request, nil)
 	var opts []restclient.HarBuilderOption
 	opts = append(opts, restclient.WithHarEntry(harEntry))
 	if err != nil {
@@ -65,7 +70,7 @@ func TestRestClient(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	harEntry, err = client.Execute("op", "req-id", "lra-id", &request)
+	harEntry, err = client.Execute("op", "req-id", "lra-id", request, nil)
 	opts = append(opts, restclient.WithHarEntry(harEntry))
 	logHAR(t, restclient.NewHAR(opts...))
 	require.NoError(t, err)
