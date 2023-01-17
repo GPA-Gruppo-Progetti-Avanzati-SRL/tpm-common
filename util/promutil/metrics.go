@@ -106,7 +106,7 @@ func fixLabels(cfgLabels LabelsInfo, providedLabels prometheus.Labels) prometheu
 	}
 
 	for _, l := range cfgLabels {
-		if _, ok := providedLabels[l.Name]; !ok {
+		if pl, ok := providedLabels[l.Name]; pl == "" || !ok {
 			actualLabels[l.Name] = l.DefaultValue
 		}
 	}
