@@ -28,12 +28,29 @@ const MetricTypeHistogram = "histogram"
 //	Labels string
 //}
 
+type LabelInfo struct {
+	Name         string `yaml:"name" mapstructure:"name" json:"name"`
+	DefaultValue string `yaml:"default-value" mapstructure:"default-value" json:"default-value"`
+}
+
+type LabelsInfo []LabelInfo
+
+func (li LabelsInfo) Contains(n string) bool {
+	for _, ln := range li {
+		if ln.Name == n {
+			return true
+		}
+	}
+
+	return false
+}
+
 type MetricInfo struct {
 	Id        string
 	Type      string
 	Name      string
 	Collector prometheus.Collector
-	Labels    string
+	Labels    LabelsInfo
 }
 
 type MetricsConfig struct {
@@ -46,7 +63,7 @@ type MetricConfig struct {
 	Id      string                `yaml:"id" mapstructure:"id" json:"id"`
 	Name    string                `yaml:"name" mapstructure:"name" json:"name"`
 	Help    string                `yaml:"help" mapstructure:"help" json:"help"`
-	Labels  string                `yaml:"labels" mapstructure:"labels" json:"labels"`
+	Labels  []LabelInfo           `yaml:"labels" mapstructure:"labels" json:"labels"`
 	Type    string                `yaml:"type" mapstructure:"type" json:"type"`
 	Buckets HistogramBucketConfig `yaml:"buckets" mapstructure:"buckets" json:"buckets"`
 }

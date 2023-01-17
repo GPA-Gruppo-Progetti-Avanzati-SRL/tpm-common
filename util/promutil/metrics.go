@@ -90,46 +90,28 @@ func setMetricValue(c MetricInfo, v float64, labels prometheus.Labels) {
 	}
 }
 
-func fixLabels(cfgLabels string, providedLabels prometheus.Labels) prometheus.Labels {
-	if cfgLabels == "" {
+func fixLabels(cfgLabels LabelsInfo, providedLabels prometheus.Labels) prometheus.Labels {
+	if len(cfgLabels) == 0 {
 		return nil
 	}
 
-	lblsArr := strings.Split(cfgLabels, ",")
+	actualLabels := make(prometheus.Labels)
 	if len(providedLabels) == 0 {
-		providedLabels = make(prometheus.Labels)
-		for _, l := range lblsArr {
-			providedLabels[l] = "none"
+		actualLabels = make(prometheus.Labels)
+		for _, l := range cfgLabels {
+			actualLabels[l.Name] = l.DefaultValue
 		}
 
-		return providedLabels
+		return actualLabels
 	}
 
-	// Equal size..... might match.... need to check...
-	if len(providedLabels) == len(lblsArr) {
-		ok := true
-		for _, l := range lblsArr {
-			if _, ok = providedLabels[l]; !ok {
-				break
-			}
-		}
-
-		if ok {
-			return providedLabels
+	for _, l := range cfgLabels {
+		if _, ok := providedLabels[l.Name]; !ok {
+			actualLabels[l.Name] = l.DefaultValue
 		}
 	}
 
-	// different size or don't match....
-	newLabels := make(prometheus.Labels)
-	for _, l := range lblsArr {
-		if v, ok := providedLabels[l]; ok {
-			newLabels[l] = v
-		} else {
-			newLabels[l] = "none"
-		}
-	}
-
-	return newLabels
+	return actualLabels
 }
 
 func NewCollector(namespace string, subsystem string, opName string, metricConfig *MetricConfig) (prometheus.Collector, error) {
@@ -171,8 +153,10 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 	}
 
 	var lbs []string
-	if counterMetrics.Labels != "" {
-		lbs = strings.Split(counterMetrics.Labels, ",")
+	if len(counterMetrics.Labels) != 0 {
+		for _, l := range counterMetrics.Labels {
+			lbs = append(lbs, l.Name)
+		}
 	}
 	c := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -214,8 +198,10 @@ func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *M
 	}
 
 	var lbs []string
-	if gaugeMetrics.Labels != "" {
-		lbs = strings.Split(gaugeMetrics.Labels, ",")
+	if len(gaugeMetrics.Labels) != 0 {
+		for _, l := range gaugeMetrics.Labels {
+			lbs = append(lbs, l.Name)
+		}
 	}
 	c := prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -267,8 +253,10 @@ func NewHistogram(namespace string, subsystem string, opName string, histogramMe
 	}
 
 	var lbs []string
-	if histogramMetrics.Labels != "" {
-		lbs = strings.Split(histogramMetrics.Labels, ",")
+	if len(histogramMetrics.Labels) != 0 {
+		for _, l := range histogramMetrics.Labels {
+			lbs = append(lbs, l.Name)
+		}
 	}
 
 	h := prometheus.NewHistogramVec(prometheus.HistogramOpts{

@@ -109,12 +109,12 @@ func retryCondition(errorsList []int) resty.RetryConditionFunc {
 		sc := resp.StatusCode()
 		for i := 0; i < len(errorsList); i++ {
 			if sc == errorsList[i] {
-				log.Trace().Int("http-status", sc).Msg(semLogContext + " retry condition satisifed")
+				log.Trace().Int("http-status", sc).Msg(semLogContext + " retry condition satisfied")
 				return true
 			}
 		}
 
-		log.Trace().Int("http-status", sc).Msg(semLogContext + " retry condition NOT satisifed")
+		log.Trace().Int("http-status", sc).Msg(semLogContext + " retry condition NOT satisfied")
 		return false
 	}
 }
@@ -129,7 +129,7 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers Name
 
 	var hs []NameValuePair
 
-	// Default content-type used if some thing else is not found.
+	// Default content-type used if something else is not found.
 	ct := "application/json"
 
 	// Setting first the default headers... in principle I should avoid dups....
