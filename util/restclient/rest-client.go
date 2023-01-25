@@ -220,6 +220,8 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		resp, err = req.Post(u)
 	case http.MethodPut:
 		resp, err = req.Put(u)
+	case http.MethodDelete:
+		resp, err = req.Delete(u)
 	}
 
 	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, resp.StatusCode(), err)
@@ -278,6 +280,7 @@ func (s *Client) getRequestWithSpan(reqDef *Request, reqSpan opentracing.Span) *
 	switch reqDef.Method {
 	case http.MethodGet:
 	case http.MethodHead:
+	case http.MethodDelete:
 	case http.MethodPost:
 		if reqDef.HasBody() {
 			req = req.SetBody(reqDef.PostData.Data)
