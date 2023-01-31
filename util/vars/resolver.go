@@ -170,7 +170,7 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 		}
 
 		if opts.rotate {
-			res = mangling.Rot(res)
+			res = mangling.AlphabetRot(res, true)
 		}
 
 		if opts.quoted {
