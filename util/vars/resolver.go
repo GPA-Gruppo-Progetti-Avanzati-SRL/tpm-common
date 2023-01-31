@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type VariableReference struct {
@@ -112,4 +113,62 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 	}
 
 	return strings.TrimSpace(s), nil
+}
+
+func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(s string) string {
+	return func(s string) string {
+
+		tags := strings.Split(s, ",")
+		var v interface{}
+		var ok bool
+		if v, ok = m[tags[0]]; !ok {
+			v = onVarNotFound
+		}
+
+		opts := struct {
+			quoted     bool
+			formatType string
+			format     string
+		}{
+			quoted:     false,
+			formatType: "sprint",
+			format:     "",
+		}
+
+		for i := 1; i < len(tags); i++ {
+			switch tags[i] {
+			case "quoted":
+				opts.quoted = true
+			default:
+				if _, ok = v.(time.Time); ok {
+					opts.format = tags[i]
+					opts.formatType = "time-layout"
+				} else {
+					opts.format = "%" + tags[i]
+					opts.formatType = "sprintf"
+				}
+			}
+		}
+
+		var res string
+		switch opts.formatType {
+		case "time-layout":
+			res = v.(time.Time).Format(opts.format)
+		case "sprintf":
+			res = fmt.Sprintf(opts.format, v)
+		default:
+			res = fmt.Sprint(v)
+		}
+		if opts.format != "" {
+
+		} else {
+
+		}
+
+		if opts.quoted {
+			res = fmt.Sprintf("\"%s\"", res)
+		}
+
+		return res
+	}
 }
