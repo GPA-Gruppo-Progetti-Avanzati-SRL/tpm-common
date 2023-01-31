@@ -2,6 +2,7 @@ package varResolver
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/mangling"
 	"regexp"
 	"strings"
 	"time"
@@ -130,10 +131,12 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 		}
 
 		opts := struct {
+			rotate     bool
 			quoted     bool
 			formatType string
 			format     string
 		}{
+			rotate:     false,
 			quoted:     false,
 			formatType: "sprint",
 			format:     "",
@@ -141,6 +144,8 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 
 		for i := 1; i < len(tags); i++ {
 			switch tags[i] {
+			case "rotate":
+				opts.rotate = true
 			case "quoted":
 				opts.quoted = true
 			default:
@@ -163,10 +168,9 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 		default:
 			res = fmt.Sprint(v)
 		}
-		if opts.format != "" {
 
-		} else {
-
+		if opts.rotate {
+			res = mangling.Rot(res)
 		}
 
 		if opts.quoted {
