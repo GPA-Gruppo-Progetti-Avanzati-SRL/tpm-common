@@ -95,7 +95,7 @@ func FindVariableReferences(s string, ofType VariableReferenceType) ([]VariableR
 	return resp, nil
 }
 
-type VariableResolverFunc func(s string) string
+type VariableResolverFunc func(current string, s string) string
 
 func ResolveVariables(s string, ofType VariableReferenceType, aResolver VariableResolverFunc, trimResult bool) (string, error) {
 
@@ -109,20 +109,24 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 	}
 
 	for _, v := range vars {
-		s = strings.ReplaceAll(s, v.Match, aResolver(v.VarName))
+		s = strings.ReplaceAll(s, v.Match, aResolver(s, v.VarName))
 	}
 
 	return strings.TrimSpace(s), nil
 }
 
-func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(s string) string {
-	return func(s string) string {
+func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s string) string {
+	return func(a, s string) string {
 
 		tags := strings.Split(s, ",")
 		var v interface{}
 		var ok bool
 		if v, ok = m[tags[0]]; !ok {
 			v = onVarNotFound
+		}
+
+		if f, ok := v.(func(s string) string); ok {
+			v = f(a)
 		}
 
 		opts := struct {

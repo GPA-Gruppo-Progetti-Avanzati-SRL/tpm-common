@@ -212,7 +212,7 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 
 var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:"}
 
-func (pvr *Context) resolveVar(s string) string {
+func (pvr *Context) resolveVar(_ string, s string) string {
 
 	doEscape := false
 	if strings.HasPrefix(s, "!") {
