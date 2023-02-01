@@ -14,22 +14,22 @@ const (
 )
 
 type Header struct {
-	Name  string `mapstructure:"name"`
-	Value string `mapstructure:"value"`
+	Name  string `mapstructure:"name" json:"name" yaml:"name"`
+	Value string `mapstructure:"value" json:"value" yaml:"value"`
 }
 
 type Config struct {
-	RestTimeout      time.Duration `mapstructure:"timeout" json:"timeout" yaml:"timeout"`
-	SkipVerify       bool          `mapstructure:"skip-verify" json:"skip-verify" yaml:"skip-verify"`
-	Headers          []Header      `mapstructure:"headers" json:"headers" yaml:"headers"`
-	TraceGroupName   string        `mapstructure:"trace-group-name" json:"trace-group-name" yaml:"trace-group-name"`
-	TraceRequestName string        `mapstructure:"trace-req-name" json:"trace-req-name" yaml:"trace-req-name"`
-	RetryCount       int           `mapstructure:"retry-count" json:"retry-count" yaml:"retry-count"`
-	RetryWaitTime    time.Duration `mapstructure:"retry-wait-time" json:"retry-wait-time" yaml:"retry-wait-time"`
-	RetryMaxWaitTime time.Duration `mapstructure:"retry-max-wait-time" json:"retry-max-wait-time" yaml:"retry-max-wait-time"`
-	RetryOnHttpError []int         `mapstructure:"retry-on-errors" json:"retry-on-errors" yaml:"retry-on-errors"`
+	RestTimeout      time.Duration `mapstructure:"timeout,omitempty" json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	SkipVerify       bool          `mapstructure:"skv,omitempty" json:"skv,omitempty" yaml:"skv,omitempty"`
+	Headers          []Header      `mapstructure:"headers,omitempty" json:"headers,omitempty" yaml:"headers,omitempty"`
+	TraceGroupName   string        `mapstructure:"trace-group-name,omitempty" json:"trace-group-name,omitempty" yaml:"trace-group-name,omitempty"`
+	TraceRequestName string        `mapstructure:"trace-req-name,omitempty" json:"trace-req-name,omitempty" yaml:"trace-req-name,omitempty"`
+	RetryCount       int           `mapstructure:"retry-count,omitempty" json:"retry-count,omitempty" yaml:"retry-count,omitempty"`
+	RetryWaitTime    time.Duration `mapstructure:"retry-wait-time,omitempty" json:"retry-wait-time,omitempty" yaml:"retry-wait-time,omitempty"`
+	RetryMaxWaitTime time.Duration `mapstructure:"retry-max-wait-time,omitempty" json:"retry-max-wait-time,omitempty" yaml:"retry-max-wait-time,omitempty"`
+	RetryOnHttpError []int         `mapstructure:"retry-on-errors,omitempty" json:"retry-on-errors,omitempty" yaml:"retry-on-errors,omitempty"`
 
-	Span opentracing.Span
+	Span opentracing.Span `mapstructure:"-" json:"-" yaml:"-"`
 }
 
 type Option func(o *Config)

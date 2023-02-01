@@ -13,6 +13,7 @@ func TestRotation(t *testing.T) {
 		"amnz0459",
 		"0uvZ",
 		"0HIZ",
+		"KIKLIJLJIIIIIIQP",
 	}
 
 	t.Log("rot-13")
