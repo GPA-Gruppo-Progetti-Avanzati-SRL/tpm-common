@@ -15,8 +15,35 @@ import (
 type Option func(r *Context) error
 
 type Context struct {
-	vars  map[string]interface{}
-	input map[string]interface{}
+	vars    map[string]interface{}
+	input   map[string]interface{}
+	headers NameValuePairs
+}
+
+type NameValuePair struct {
+	Name    string `json:"name"`              // Name of the pair.
+	Value   string `json:"value"`             // Value of the pair.
+	Comment string `json:"comment,omitempty"` // A comment provided by the user or the application.
+}
+
+type NameValuePairs []NameValuePair
+
+func (nvs NameValuePairs) GetFirst(n string) NameValuePair {
+
+	n = strings.ToLower(n)
+	for _, nv := range nvs {
+		if strings.ToLower(nv.Name) == n {
+			return nv
+		}
+	}
+	return NameValuePair{}
+}
+
+func WithHeaders(h []NameValuePair) Option {
+	return func(r *Context) error {
+		r.headers = h
+		return nil
+	}
 }
 
 func WithVars(m map[string]interface{}) Option {
@@ -239,6 +266,10 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 			}
 		}
 
+	case "h:":
+		s = pvr.headers.GetFirst(s[2:]).Value
+		return pvr.jsonEscape(s, doEscape)
+
 	case "v:":
 		v, ok := pvr.vars[s[2:]]
 		if ok {
@@ -315,6 +346,12 @@ func (pvr *Context) getPrefix(s string) (string, error) {
 		if pvr.vars != nil {
 			isValid = true
 		}
+
+	case "h:":
+		if pvr.headers != nil {
+			isValid = true
+		}
+
 	case "env":
 		isValid = true
 	}
