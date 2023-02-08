@@ -5,6 +5,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/go-resty/resty/v2"
 	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/rs/zerolog/log"
 	"net"
 	"net/http"
@@ -224,10 +225,10 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		resp, err = req.Delete(u)
 	}
 
-	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, resp.StatusCode(), err)
-
 	var r *Response
 	if err == nil {
+		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, resp.StatusCode(), err)
+
 		r = &Response{
 			Status:      resp.StatusCode(),
 			HTTPVersion: "1.1",
@@ -247,6 +248,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		}
 	} else {
 		sc, st := DetectStatusCodeStatusTextFromError(resp.StatusCode(), err)
+		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
 		err = util.NewError(strconv.Itoa(sc), err)
 		r = NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
 	}
@@ -369,6 +371,7 @@ func (s *Client) setSpanTags(reqSpan opentracing.Span, opName, reqId, lraId, end
 
 	if err != nil {
 		reqSpan.SetTag("error", err.Error())
+		ext.Error.Set(reqSpan, true)
 	}
 }
 
