@@ -225,9 +225,16 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		resp, err = req.Delete(u)
 	}
 
+	var sc int
+	var st string
+	if resp != nil {
+		sc = resp.StatusCode()
+	}
+
+	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
+
 	var r *Response
 	if err == nil {
-		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, resp.StatusCode(), err)
 
 		r = &Response{
 			Status:      resp.StatusCode(),
@@ -247,7 +254,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 			r.Headers = append(r.Headers, NameValuePair{Name: n, Value: resp.Header().Get(n)})
 		}
 	} else {
-		sc, st := DetectStatusCodeStatusTextFromError(resp.StatusCode(), err)
+		sc, st = DetectStatusCodeStatusTextFromError(sc, err)
 		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
 		err = util.NewError(strconv.Itoa(sc), err)
 		r = NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
@@ -377,7 +384,7 @@ func (s *Client) setSpanTags(reqSpan opentracing.Span, opName, reqId, lraId, end
 
 func DetectStatusCodeStatusTextFromError(c int, err error) (int, string) {
 	if c != 0 {
-		return c, http.StatusText(http.StatusRequestTimeout)
+		return c, http.StatusText(c)
 	}
 
 	if os.IsTimeout(err) {
