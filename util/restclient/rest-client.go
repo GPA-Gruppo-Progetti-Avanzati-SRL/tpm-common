@@ -3,6 +3,7 @@ package restclient
 import (
 	"crypto/tls"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-har/har"
 	"github.com/go-resty/resty/v2"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -126,23 +127,23 @@ func (s *Client) Close() {
 	}
 }
 
-func (s *Client) NewRequest(method string, url string, body []byte, headers NameValuePairs, params NameValuePairs) (*Request, error) {
+func (s *Client) NewRequest(method string, url string, body []byte, headers har.NameValuePairs, params har.NameValuePairs) (*har.Request, error) {
 
-	var hs []NameValuePair
+	var hs []har.NameValuePair
 
 	// Default content-type used if something else is not found.
 	ct := "application/json"
 
 	// Setting first the default headers... in principle I should avoid dups....
 	for _, h := range s.cfg.Headers {
-		hs = append(hs, NameValuePair{Name: h.Name, Value: h.Value})
+		hs = append(hs, har.NameValuePair{Name: h.Name, Value: h.Value})
 		if strings.ToLower(h.Name) == "content-type" {
 			ct = h.Value
 		}
 	}
 
 	for _, h := range headers {
-		hs = append(hs, NameValuePair{Name: h.Name, Value: h.Value})
+		hs = append(hs, har.NameValuePair{Name: h.Name, Value: h.Value})
 		if strings.ToLower(h.Name) == "content-type" {
 			ct = h.Value
 		}
@@ -160,21 +161,21 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers Name
 		}
 	*/
 
-	pars := make([]Param, 0)
+	pars := make([]har.Param, 0)
 	for _, h := range params {
-		pars = append(pars, Param{Name: h.Name, Value: h.Value})
+		pars = append(pars, har.Param{Name: h.Name, Value: h.Value})
 	}
 
-	req := &Request{
+	req := &har.Request{
 		Method:      method,
 		URL:         url,
 		HTTPVersion: "1.1",
 		Headers:     hs,
 		HeadersSize: -1,
-		Cookies:     []Cookie{},
-		QueryString: []NameValuePair{},
+		Cookies:     []har.Cookie{},
+		QueryString: []har.NameValuePair{},
 		BodySize:    int64(len(body)),
-		PostData: &PostData{
+		PostData: &har.PostData{
 			MimeType: ct,
 			Data:     body,
 			Params:   pars,
@@ -184,10 +185,10 @@ func (s *Client) NewRequest(method string, url string, body []byte, headers Name
 	return req, nil
 }
 
-func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Request, requestParentSpan opentracing.Span) (*Entry, error) {
+func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *har.Request, requestParentSpan opentracing.Span) (*har.Entry, error) {
 
 	now := time.Now()
-	e := &Entry{
+	e := &har.Entry{
 		Comment:         reqId,
 		StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
 		StartDateTimeTm: now,
@@ -233,17 +234,17 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 
 	s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
 
-	var r *Response
+	var r *har.Response
 	if err == nil {
 
-		r = &Response{
+		r = &har.Response{
 			Status:      resp.StatusCode(),
 			HTTPVersion: "1.1",
 			StatusText:  resp.Status(),
 			HeadersSize: -1,
 			BodySize:    resp.Size(),
-			Cookies:     []Cookie{},
-			Content: &Content{
+			Cookies:     []har.Cookie{},
+			Content: &har.Content{
 				MimeType: resp.Header().Get("Content-type"),
 				Size:     resp.Size(),
 				Data:     resp.Body(),
@@ -251,13 +252,13 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		}
 
 		for n, _ := range resp.Header() {
-			r.Headers = append(r.Headers, NameValuePair{Name: n, Value: resp.Header().Get(n)})
+			r.Headers = append(r.Headers, har.NameValuePair{Name: n, Value: resp.Header().Get(n)})
 		}
 	} else {
 		sc, st = DetectStatusCodeStatusTextFromError(sc, err)
 		s.setSpanTags(reqSpan, opName, reqId, lraId, u, reqDef.Method, sc, err)
 		err = util.NewError(strconv.Itoa(sc), err)
-		r = NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
+		r = har.NewResponse(sc, st, "text/plain", []byte(err.Error()), nil)
 	}
 
 	if e.StartedDateTime != "" {
@@ -265,7 +266,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 		e.Time = float64(elapsed.Milliseconds())
 	}
 
-	e.Timings = &Timings{
+	e.Timings = &har.Timings{
 		Blocked: -1,
 		DNS:     -1,
 		Connect: -1,
@@ -280,7 +281,7 @@ func (s *Client) Execute(opName string, reqId string, lraId string, reqDef *Requ
 	// return resp.StatusCode(), resp.Body(), resp.Header(), err
 }
 
-func (s *Client) getRequestWithSpan(reqDef *Request, reqSpan opentracing.Span) *resty.Request {
+func (s *Client) getRequestWithSpan(reqDef *har.Request, reqSpan opentracing.Span) *resty.Request {
 
 	req := s.restClient.R()
 	// Transmit the span's TraceContext as HTTP headers on our outbound request.

@@ -3,6 +3,7 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common
 go 1.19
 
 require (
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-har v0.0.2
 	github.com/PaesslerAG/gval v1.0.0
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/go-resty/resty/v2 v2.7.0

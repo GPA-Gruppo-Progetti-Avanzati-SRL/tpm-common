@@ -3,6 +3,7 @@ package restclient_test
 import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/restclient"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-har/har"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -36,9 +37,9 @@ func TestRestClient(t *testing.T) {
 		Span:             nil,
 	}
 
-	urlBuilder := restclient.UrlBuilder{}
-	urlBuilder.WithScheme(restclient.HttpScheme)
-	urlBuilder.WithHostname(restclient.Localhost)
+	urlBuilder := har.UrlBuilder{}
+	urlBuilder.WithScheme(har.HttpScheme)
+	urlBuilder.WithHostname(har.Localhost)
 	urlBuilder.WithPort(3001)
 	urlBuilder.WithPath("/api/v1/token-contexts/BPMIFI/tokens")
 
@@ -59,20 +60,20 @@ func TestRestClient(t *testing.T) {
 	client := restclient.NewClient(&cfg)
 	defer client.Close()
 
-	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, []restclient.NameValuePair{{Name: "Content-type", Value: "application/json"}, {Name: "Accept", Value: "application/json"}}, nil)
+	request, err := client.NewRequest(http.MethodPost, urlBuilder.Url(), reqBody, []har.NameValuePair{{Name: "Content-type", Value: "application/json"}, {Name: "Accept", Value: "application/json"}}, nil)
 	require.NoError(t, err)
 
 	harEntry, err := client.Execute("op2", "req-id", "", request, nil)
-	var opts []restclient.HarBuilderOption
-	opts = append(opts, restclient.WithHarEntry(harEntry))
+	var opts []har.BuilderOption
+	opts = append(opts, har.WithEntry(harEntry))
 	if err != nil {
-		logHAR(t, restclient.NewHAR(opts...))
+		logHAR(t, har.NewHAR(opts...))
 		require.NoError(t, err)
 	}
 
 	harEntry, err = client.Execute("op", "req-id", "lra-id", request, nil)
-	opts = append(opts, restclient.WithHarEntry(harEntry))
-	logHAR(t, restclient.NewHAR(opts...))
+	opts = append(opts, har.WithEntry(harEntry))
+	logHAR(t, har.NewHAR(opts...))
 	require.NoError(t, err)
 }
 
@@ -80,7 +81,7 @@ const (
 	JAEGER_SERVICE_NAME = "JAEGER_SERVICE_NAME"
 )
 
-func logHAR(t *testing.T, har *restclient.HAR) {
+func logHAR(t *testing.T, har *har.HAR) {
 	b, err := json.Marshal(har)
 	require.NoError(t, err)
 	t.Log(string(b))
