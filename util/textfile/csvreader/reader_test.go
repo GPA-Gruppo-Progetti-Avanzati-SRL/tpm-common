@@ -34,8 +34,8 @@ func TestReader(t *testing.T) {
 	buffers = append(buffers, buffer2)
 
 	cfgs := []csvreader.Config{
-		{HeaderLine: true, Separator: ';', Fields: []textfile.FieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
-		{HeaderLine: false, Separator: ';'},
+		{HeaderLine: true, Separator: ";", Fields: []textfile.FieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
+		{HeaderLine: false, Separator: ";"},
 	}
 
 	for i, cfg := range cfgs {

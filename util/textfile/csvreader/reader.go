@@ -36,8 +36,8 @@ func NewCSVFileReader(cfg Config, opts ...Option) (Reader, error) {
 	var err error
 
 	config := cfg
-	if config.Separator == 0 {
-		config.Separator = ';'
+	if config.Separator == "" {
+		config.Separator = ";"
 	}
 
 	for _, o := range opts {
@@ -66,7 +66,7 @@ func NewCSVFileReader(cfg Config, opts ...Option) (Reader, error) {
 		r.csvReader = csv.NewReader(bufio.NewReader(r.osFile))
 	}
 
-	r.csvReader.Comma = config.Separator
+	r.csvReader.Comma = rune(config.Separator[0])
 	if cfg.HeaderLine {
 		fieldNames, err := r.csvReader.Read()
 		if err != nil {
