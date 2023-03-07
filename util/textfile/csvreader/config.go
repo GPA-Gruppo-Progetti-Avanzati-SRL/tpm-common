@@ -7,10 +7,10 @@ import (
 )
 
 type Config struct {
-	HeaderLine bool
-	Separator  rune
-	FileName   string
-	Fields     []textfile.FieldInfo
+	HeaderLine bool                 `yaml:"header-line,omitempty" mapstructure:"header-line,omitempty" json:"header-line,omitempty"`
+	Separator  rune                 `yaml:"separator,omitempty" mapstructure:"separator,omitempty" json:"separator,omitempty"`
+	FileName   string               `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
+	Fields     []textfile.FieldInfo `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
 	ioReader   io.Reader
 }
 
