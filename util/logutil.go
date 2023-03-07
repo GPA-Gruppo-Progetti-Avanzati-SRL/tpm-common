@@ -2,45 +2,35 @@ package util
 
 import (
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type GeometricTraceLogger struct {
 	numberOfEntries int64
 }
 
-func (l *GeometricTraceLogger) Msg(s string) {
-	l.numberOfEntries++
+func _isEnabled(numLines int64) bool {
 
 	doLog := false
-	if l.numberOfEntries <= 10 ||
-		(l.numberOfEntries <= 100 && l.numberOfEntries%10 == 0) ||
-		(l.numberOfEntries <= 1000 && l.numberOfEntries%100 == 0) ||
-		(l.numberOfEntries <= 10000 && l.numberOfEntries%1000 == 0) ||
-		(l.numberOfEntries <= 100000 && l.numberOfEntries%1000 == 0) ||
-		(l.numberOfEntries <= 1000000 && l.numberOfEntries%100000 == 0) {
+	if numLines <= 10 ||
+		(numLines <= 100 && numLines%10 == 0) ||
+		(numLines <= 1000 && numLines%100 == 0) ||
+		(numLines <= 10000 && numLines%1000 == 0) ||
+		(numLines <= 100000 && numLines%1000 == 0) ||
+		(numLines <= 1000000 && numLines%100000 == 0) {
 		doLog = true
 	}
 
-	if doLog {
-		log.Trace().Msg(s)
-	}
+	return doLog
 }
 
-func (l *GeometricTraceLogger) MsgEvent(e *zerolog.Event, msg string) {
+func (l *GeometricTraceLogger) IsEnabled() bool {
+	return _isEnabled(l.numberOfEntries + 1)
+}
+
+func (l *GeometricTraceLogger) LogEvent(e *zerolog.Event, msg string) {
 	l.numberOfEntries++
 
-	doLog := false
-	if l.numberOfEntries <= 10 ||
-		(l.numberOfEntries <= 100 && l.numberOfEntries%10 == 0) ||
-		(l.numberOfEntries <= 1000 && l.numberOfEntries%100 == 0) ||
-		(l.numberOfEntries <= 10000 && l.numberOfEntries%1000 == 0) ||
-		(l.numberOfEntries <= 100000 && l.numberOfEntries%1000 == 0) ||
-		(l.numberOfEntries <= 1000000 && l.numberOfEntries%100000 == 0) {
-		doLog = true
-	}
-
-	if doLog {
+	if _isEnabled(l.numberOfEntries) {
 		if msg != "" {
 			e.Msg(msg)
 		} else {
