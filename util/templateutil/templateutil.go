@@ -1,4 +1,4 @@
-package util
+package templateutil
 
 import (
 	"bytes"
@@ -12,12 +12,12 @@ import (
 	"text/template"
 )
 
-type TemplateInfo struct {
+type Info struct {
 	Name    string
 	Content string
 }
 
-func TemplatePreprocessVariableReferences(tmpl string, refType varResolver.VariableReferenceType) string {
+func PreprocessVariableReferences(tmpl string, refType varResolver.VariableReferenceType) string {
 
 	varr, err := varResolver.FindVariableReferences(tmpl, refType)
 	if err != nil {
@@ -38,14 +38,14 @@ func TemplatePreprocessVariableReferences(tmpl string, refType varResolver.Varia
 
 func EvaluateSimpleTemplateWithVars(t string, meta map[string]interface{}, variablesFilter varResolver.VariableReferenceType) (string, error) {
 
-	realTmpl := TemplatePreprocessVariableReferences(t, variablesFilter)
+	realTmpl := PreprocessVariableReferences(t, variablesFilter)
 
-	tmpl := MustParseTemplates([]TemplateInfo{{
+	tmpl := MustParse([]Info{{
 		Name:    "evaluate-template",
 		Content: realTmpl,
 	}}, nil)
 
-	n, err := ProcessTemplate(tmpl, meta, false)
+	n, err := Process(tmpl, meta, false)
 	if err != nil {
 		return "", err
 	}
@@ -53,7 +53,7 @@ func EvaluateSimpleTemplateWithVars(t string, meta map[string]interface{}, varia
 	return string(n), nil
 }
 
-func ParseTemplates(templates []TemplateInfo, fMaps template.FuncMap) (*template.Template, error) {
+func Parse(templates []Info, fMaps template.FuncMap) (*template.Template, error) {
 	if len(templates) == 0 {
 		return nil, errors.New("no template provided")
 	}
@@ -77,8 +77,8 @@ func ParseTemplates(templates []TemplateInfo, fMaps template.FuncMap) (*template
 	return mainTemplate, nil
 }
 
-func MustParseTemplates(templates []TemplateInfo, fMaps template.FuncMap) *template.Template {
-	t, err := ParseTemplates(templates, fMaps)
+func MustParse(templates []Info, fMaps template.FuncMap) *template.Template {
+	t, err := Parse(templates, fMaps)
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +92,7 @@ func ParseTemplateProcessWrite2File(templateContent string, templateData interfa
 	if pkgTemplate, err := template.New("css").Parse(templateContent); err != nil {
 		return err
 	} else {
-		if err := ProcessTemplateWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
+		if err := ProcessWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
 			return err
 		}
 	}
@@ -105,7 +105,7 @@ func ParseTemplateWithFuncMapsProcessWrite2File(templateContent string, fMaps te
 	if pkgTemplate, err := template.New("css").Funcs(fMaps).Parse(templateContent); err != nil {
 		return err
 	} else {
-		if err := ProcessTemplateWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
+		if err := ProcessWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
 			return err
 		}
 	}
@@ -114,7 +114,7 @@ func ParseTemplateWithFuncMapsProcessWrite2File(templateContent string, fMaps te
 }
 */
 
-func ProcessTemplate(pkgTemplate *template.Template, templateData interface{}, formatSource bool) ([]byte, error) {
+func Process(pkgTemplate *template.Template, templateData interface{}, formatSource bool) ([]byte, error) {
 
 	builder := &bytes.Buffer{}
 
@@ -135,7 +135,7 @@ func ProcessTemplate(pkgTemplate *template.Template, templateData interface{}, f
 	return data, nil
 }
 
-func MustProcessTemplate(pkgTemplate *template.Template, templateData interface{}, formatSource bool) []byte {
+func MustProcess(pkgTemplate *template.Template, templateData interface{}, formatSource bool) []byte {
 
 	builder := &bytes.Buffer{}
 
@@ -156,9 +156,9 @@ func MustProcessTemplate(pkgTemplate *template.Template, templateData interface{
 	return data
 }
 
-func ProcessTemplateWrite2File(pkgTemplate *template.Template, templateData interface{}, outputFile string, formatSource bool) error {
+func ProcessWrite2File(pkgTemplate *template.Template, templateData interface{}, outputFile string, formatSource bool) error {
 
-	data, err := ProcessTemplate(pkgTemplate, templateData, formatSource)
+	data, err := Process(pkgTemplate, templateData, formatSource)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func ProcessTemplateWrite2File(pkgTemplate *template.Template, templateData inte
 	return nil
 }
 
-func LoadTemplateProcessWrite2File(templateFileName string, templateData interface{}, outputFile string, formatSource bool) error {
+func LoadProcessWrite2File(templateFileName string, templateData interface{}, outputFile string, formatSource bool) error {
 
 	if f, err := ioutil.ReadFile(templateFileName); err != nil {
 		return err
@@ -179,7 +179,7 @@ func LoadTemplateProcessWrite2File(templateFileName string, templateData interfa
 		if pkgTemplate, err = template.New("css").Parse(string(f)); err != nil {
 			return err
 		} else {
-			if err = ProcessTemplateWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
+			if err = ProcessWrite2File(pkgTemplate, templateData, outputFile, formatSource); err != nil {
 				return err
 			}
 		}

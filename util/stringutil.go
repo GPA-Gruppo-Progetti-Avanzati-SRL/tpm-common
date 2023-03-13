@@ -36,8 +36,10 @@ func StringJoin(args []string, sep string, maxLength int) string {
 }
 
 func ToMaxLength(s string, maxLength int) (string, bool) {
+
+	const semLogContext = "common-util::to-max-length"
 	if maxLength == 0 {
-		log.Trace().Int("max-length", maxLength).Msg("tpm-common/util/ToMaxLength - maxLength is zero..... string unmodified")
+		log.Trace().Int("max-length", maxLength).Msg(semLogContext + " maxLength is zero..... string unmodified")
 		return s, false
 	}
 
@@ -53,6 +55,30 @@ func ToMaxLength(s string, maxLength int) (string, bool) {
 	}
 
 	return s, truncated
+}
+
+func Pad2Length(s string, maxLength int, padChar string) (string, bool) {
+
+	const semLogContext = "common-util::pad-2-length"
+
+	if maxLength == 0 {
+		log.Trace().Int("max-length", maxLength).Msg(semLogContext + " maxLength is zero..... string unmodified")
+		return s, false
+	}
+
+	padded := false
+	absMaxLength := IntAbs(maxLength)
+	if len(s) < absMaxLength {
+		padded = true
+		padString := strings.Repeat(padChar[0:1], absMaxLength-len(s))
+		if maxLength > 0 {
+			s = s + padString
+		} else {
+			s = padString + s
+		}
+	}
+
+	return s, padded
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

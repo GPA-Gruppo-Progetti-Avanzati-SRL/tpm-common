@@ -66,6 +66,26 @@ func TestMaxLengh(t *testing.T) {
 	}
 }
 
+func TestPadLengh(t *testing.T) {
+
+	assert := assert.New(t)
+	var s []InputWanted
+
+	s = []InputWanted{
+		{input: "0123456789", wanted: "0123456789", param: 10},
+		{input: "0123456789", wanted: "0123456789", param: 7},
+		{input: "0123456789", wanted: "-----0123456789", param: -15},
+		{input: "0123456789", wanted: "0123456789-----", param: 15},
+		{input: "0123456789", wanted: "0123456789", param: 0},
+	}
+
+	for _, iw := range s {
+		v, _ := util.Pad2Length(iw.input, iw.param, "-")
+		fmt.Printf("%s (%d) --> %s\n", iw.input, iw.param, v)
+		assert.Equal(iw.wanted, v, "pad to length: strings should match")
+	}
+}
+
 func TestStrings(t *testing.T) {
 
 	assert := assert.New(t)

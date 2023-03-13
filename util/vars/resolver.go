@@ -2,8 +2,11 @@ package varResolver
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/mangling"
+	"github.com/rs/zerolog/log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -44,7 +47,7 @@ var VariableReferencePatternRegexp = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|
 
 // VariableReferencePatternRegexpExt sort of extended mode with names of vars starting with letters or the dollar sign followed by more possible chars.
 // Tried to include symbols from https://goessner.net/articles/JsonPath/
-var VariableReferencePatternRegexpExt = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)(!?[$a-zA-Z][:,@'$\\.\\\"\\[\\]a-zA-Z0-9_\\-]*)([%#]>|})")
+var VariableReferencePatternRegexpExt = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)(!?[$a-zA-Z][:,=@'$\\.\\\"\\[\\]a-zA-Z0-9_\\-]*)([%#]>|})")
 
 type PrefixSuffixTypeMapping struct {
 	Type   VariableReferenceType
@@ -116,7 +119,18 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 	return strings.TrimSpace(s), nil
 }
 
+type formatOpts struct {
+	rotate     bool
+	quoted     bool
+	formatType string
+	format     string
+	maxLength  int
+	padChar    string
+}
+
 func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s string) string {
+
+	const semLogContext = "common-util-vars::simple-map-resolver"
 	return func(a, s string) string {
 
 		tags := strings.Split(s, ",")
@@ -126,38 +140,11 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 			v = onVarNotFound
 		}
 
-		if f, ok := v.(func(s string) string); ok {
-			v = f(a)
+		if f, ok := v.(func(a, s string) string); ok {
+			v = f(a, s)
 		}
 
-		opts := struct {
-			rotate     bool
-			quoted     bool
-			formatType string
-			format     string
-		}{
-			rotate:     false,
-			quoted:     false,
-			formatType: "sprint",
-			format:     "",
-		}
-
-		for i := 1; i < len(tags); i++ {
-			switch tags[i] {
-			case "rotate":
-				opts.rotate = true
-			case "quoted":
-				opts.quoted = true
-			default:
-				if _, ok = v.(time.Time); ok {
-					opts.format = tags[i]
-					opts.formatType = "time-layout"
-				} else {
-					opts.format = "%" + tags[i]
-					opts.formatType = "sprintf"
-				}
-			}
-		}
+		opts := resolveFormatOptions(v, tags)
 
 		var res string
 		switch opts.formatType {
@@ -173,10 +160,77 @@ func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s
 			res = mangling.AlphabetRot(res, true)
 		}
 
+		if opts.padChar != "" {
+			res, _ = util.Pad2Length(res, opts.maxLength, opts.padChar)
+		}
+
+		if opts.maxLength != 0 {
+			res, _ = util.ToMaxLength(res, opts.maxLength)
+		}
+
 		if opts.quoted {
 			res = fmt.Sprintf("\"%s\"", res)
 		}
 
 		return res
 	}
+}
+
+func resolveFormatOptions(v interface{}, tags []string) formatOpts {
+
+	const semLogContext = "common-util-vars::simple-map-resolver"
+	var ok bool
+
+	opts := formatOpts{
+		rotate:     false,
+		quoted:     false,
+		formatType: "sprint",
+		format:     "",
+		maxLength:  0,
+		padChar:    "",
+	}
+
+	for i := 1; i < len(tags); i++ {
+		switch tags[i] {
+		case "rotate":
+			opts.rotate = true
+		case "quoted":
+			opts.quoted = true
+		case "pad":
+			opts.padChar = "0"
+		default:
+			resolved := false
+			if strings.HasPrefix(tags[i], "len=") {
+				resolved = true
+				v, err := strconv.Atoi(strings.TrimPrefix(tags[i], "len="))
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext + " invalid variable tag")
+				} else {
+					opts.maxLength = v
+				}
+			}
+
+			if !resolved && strings.HasPrefix(tags[i], "pad=") {
+				resolved = true
+				v := strings.TrimPrefix(tags[i], "pad=")
+				if len(v) > 0 {
+					opts.padChar = v[0:1]
+				} else {
+					log.Warn().Msg(semLogContext + " no pad char provided")
+				}
+			}
+
+			if !resolved {
+				if _, ok = v.(time.Time); ok {
+					opts.format = tags[i]
+					opts.formatType = "time-layout"
+				} else {
+					opts.format = "%" + tags[i]
+					opts.formatType = "sprintf"
+				}
+			}
+		}
+	}
+
+	return opts
 }

@@ -51,15 +51,15 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	sarr = []string{
-		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit}",
+		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 	}
 
 	m := map[string]interface{}{
 		"ctx-id": "BPMIFI",
 		"seq-id": 22,
 		"today":  time.Now(),
-		"check-digit": func(s string) string {
-			s = strings.Replace(s, "${check-digit}", "", -1)
+		"check-digit": func(a, s string) string {
+			a = strings.Replace(a, fmt.Sprintf("${%s}", s), "", -1)
 			return fmt.Sprint(len(s))
 		},
 	}
