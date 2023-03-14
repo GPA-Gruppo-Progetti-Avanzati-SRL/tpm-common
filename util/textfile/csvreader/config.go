@@ -2,6 +2,7 @@ package csvreader
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
+	"github.com/rs/zerolog/log"
 	"io"
 	"strings"
 )
@@ -48,15 +49,21 @@ func WithFields(fi []textfile.FieldInfo) Option {
 
 func (c *Config) AdjustFieldIndexes(fs []string) {
 
+	const semLogContext = "csv-reader::adjust-field-indexes"
 	for i, f := range c.Fields {
 		if len(fs) == 0 {
 			c.Fields[i].Index = i
 		} else {
+			c.Fields[i].Index = -1
 			for j := range fs {
 				if strings.ToLower(fs[j]) == strings.ToLower(f.Name) {
 					c.Fields[i].Index = j
 					break
 				}
+			}
+
+			if c.Fields[i].Index == -1 {
+				log.Error().Str("field-name", c.Fields[i].Name).Msg(semLogContext)
 			}
 		}
 	}

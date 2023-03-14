@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCFCheckDigit(t *testing.T) {
+func TestCheckDigit(t *testing.T) {
 
 	arr := []string{
 		"MPRMLS62S21G337",
@@ -17,5 +17,12 @@ func TestCFCheckDigit(t *testing.T) {
 
 	for _, s := range arr {
 		t.Log(s, checkdigit.ComputeCFCheckDigit(s))
+	}
+
+	arr = []string{
+		"PROMOMA0B2C3D476892634",
+	}
+	for _, s := range arr {
+		t.Log(s, checkdigit.ComputeMod26CheckDigit(s))
 	}
 }

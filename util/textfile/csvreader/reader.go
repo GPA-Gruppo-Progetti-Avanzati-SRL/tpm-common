@@ -142,7 +142,7 @@ func (r *readerImpl) Read() (map[string]interface{}, error) {
 	if len(r.cfg.Fields) > 0 {
 		var firstErr error
 		for i := range r.cfg.Fields {
-			if r.cfg.Fields[i].Index < len(fields) {
+			if r.cfg.Fields[i].Index >= 0 && r.cfg.Fields[i].Index < len(fields) {
 				fieldName := r.cfg.Fields[i].Name
 				fieldValue := fields[r.cfg.Fields[i].Index]
 				record[fieldName] = fieldValue

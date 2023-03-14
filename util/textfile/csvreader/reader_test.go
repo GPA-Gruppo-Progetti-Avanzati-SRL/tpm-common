@@ -33,9 +33,17 @@ func TestReader(t *testing.T) {
 	}
 	buffers = append(buffers, buffer2)
 
+	var buffer3 bytes.Buffer
+	for i := 0; i < 1; i++ {
+		buffer3.WriteString(`BPMIFI|SSN-CODE-2|Theodore Jr|Smith;ted.smith@gmail.com|`)
+		buffer3.WriteString("\r\n")
+	}
+	buffers = append(buffers, buffer3)
+
 	cfgs := []csvreader.Config{
 		{HeaderLine: true, Separator: ";", Fields: []textfile.FieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
 		{HeaderLine: false, Separator: ";"},
+		{HeaderLine: false, Separator: "|"},
 	}
 
 	for i, cfg := range cfgs {
