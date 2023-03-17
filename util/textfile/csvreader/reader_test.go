@@ -47,7 +47,7 @@ func TestReader(t *testing.T) {
 	}
 
 	for i, cfg := range cfgs {
-		r, err := csvreader.NewCSVFileReader(cfg, csvreader.WithFields(cfg.Fields), csvreader.WithIoReader(&buffers[i]))
+		r, err := csvreader.NewReader(cfg, csvreader.WithFields(cfg.Fields), csvreader.WithIoReader(&buffers[i]))
 		require.NoError(t, err)
 
 		parsed, err := r.Read()

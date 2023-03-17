@@ -30,7 +30,7 @@ type readerImpl struct {
 	logger util.GeometricTraceLogger
 }
 
-func NewCSVFileReader(cfg Config, opts ...Option) (Reader, error) {
+func NewReader(cfg Config, opts ...Option) (Reader, error) {
 
 	const semLogContext = "csv-reader::new"
 	var err error
