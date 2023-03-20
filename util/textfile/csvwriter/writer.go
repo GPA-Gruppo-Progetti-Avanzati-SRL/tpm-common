@@ -120,7 +120,7 @@ func (w *writerImpl) Close(removeFile bool) {
 		w.csvWriter = nil
 	}
 
-	if w.cfg.FileName != "" {
+	if removeFile && w.cfg.FileName != "" {
 		os.Remove(w.cfg.FileName)
 	}
 }
