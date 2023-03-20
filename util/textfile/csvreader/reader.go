@@ -103,7 +103,7 @@ func NewReader(cfg Config, opts ...Option) (Reader, error) {
 
 func (r *readerImpl) Close(removeFile bool) {
 	const semLogContext = "csv-reader::close"
-	log.Info().Msg(semLogContext)
+	log.Info().Str("filename", r.cfg.FileName).Bool("remove-file", removeFile).Msg(semLogContext)
 
 	if r.osFile != nil {
 		r.osFile.Close()

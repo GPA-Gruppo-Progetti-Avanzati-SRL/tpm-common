@@ -115,6 +115,10 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 }
 
 func (w *writerImpl) Close(removeFile bool) {
+
+	const semLogContext = "csv-writer::close"
+	log.Info().Str("filename", w.cfg.FileName).Bool("remove-file", removeFile).Msg(semLogContext)
+
 	if w.csvWriter != nil {
 		w.csvWriter.Flush()
 		w.csvWriter = nil
