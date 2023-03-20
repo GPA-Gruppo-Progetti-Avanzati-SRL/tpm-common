@@ -16,6 +16,7 @@ import (
 type Reader interface {
 	Close()
 	Read() (map[string]interface{}, error)
+	Filename() string
 }
 
 type readerImpl struct {
@@ -108,6 +109,10 @@ func (r *readerImpl) Close() {
 	if r.osFile != nil {
 		r.osFile.Close()
 	}
+}
+
+func (w *readerImpl) Filename() string {
+	return w.cfg.FileName
 }
 
 func (r *readerImpl) Read() (map[string]interface{}, error) {

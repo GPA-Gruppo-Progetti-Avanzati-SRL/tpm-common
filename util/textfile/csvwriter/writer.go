@@ -14,6 +14,7 @@ type Writer interface {
 	WriteMap(map[string]interface{}) error
 	WriteRecord(Record) error
 	NewRecord() Record
+	Filename() string
 }
 
 type Record struct {
@@ -117,7 +118,12 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 func (w *writerImpl) Close() {
 	if w.csvWriter != nil {
 		w.csvWriter.Flush()
+		w.csvWriter = nil
 	}
+}
+
+func (w *writerImpl) Filename() string {
+	return w.cfg.FileName
 }
 
 func (w *writerImpl) NewRecord() Record {
