@@ -14,7 +14,7 @@ import (
 )
 
 type Reader interface {
-	Close()
+	Close(removeFile bool)
 	Read() (map[string]interface{}, error)
 	Filename() string
 }
@@ -23,7 +23,6 @@ type readerImpl struct {
 	cfg       Config
 	csvReader *csv.Reader
 
-	fileName   string
 	osFile     *os.File
 	lineNumber int
 	isEOF      bool
@@ -102,12 +101,16 @@ func NewReader(cfg Config, opts ...Option) (Reader, error) {
 	return r, nil
 }
 
-func (r *readerImpl) Close() {
+func (r *readerImpl) Close(removeFile bool) {
 	const semLogContext = "csv-reader::close"
 	log.Info().Msg(semLogContext)
 
 	if r.osFile != nil {
 		r.osFile.Close()
+	}
+
+	if removeFile && r.cfg.FileName != "" {
+		os.Remove(r.cfg.FileName)
 	}
 }
 

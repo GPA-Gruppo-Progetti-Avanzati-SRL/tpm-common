@@ -10,7 +10,7 @@ import (
 )
 
 type Writer interface {
-	Close()
+	Close(removeFile bool)
 	WriteMap(map[string]interface{}) error
 	WriteRecord(Record) error
 	NewRecord() Record
@@ -40,7 +40,6 @@ type writerImpl struct {
 	csvWriter *csv.Writer
 	fieldMap  map[string]int
 
-	fileName   string
 	osFile     *os.File
 	lineNumber int
 
@@ -115,10 +114,14 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 	return r, nil
 }
 
-func (w *writerImpl) Close() {
+func (w *writerImpl) Close(removeFile bool) {
 	if w.csvWriter != nil {
 		w.csvWriter.Flush()
 		w.csvWriter = nil
+	}
+
+	if w.cfg.FileName != "" {
+		os.Remove(w.cfg.FileName)
 	}
 }
 
