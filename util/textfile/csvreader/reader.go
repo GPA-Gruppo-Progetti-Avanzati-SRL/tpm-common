@@ -144,9 +144,13 @@ func (r *readerImpl) Read() (map[string]interface{}, error) {
 		for i := range r.cfg.Fields {
 			if r.cfg.Fields[i].Index >= 0 && r.cfg.Fields[i].Index < len(fields) {
 				fieldName := r.cfg.Fields[i].Name
+				fieldId := r.cfg.Fields[i].Id
+				if fieldId == "" {
+					fieldId = fieldName
+				}
 				fieldValue := fields[r.cfg.Fields[i].Index]
-				record[fieldName] = fieldValue
-				err = validateField(validate, fieldName, fieldValue, r.cfg.Fields[i].Validation, r.cfg.Fields[i].Help)
+				record[fieldId] = fieldValue
+				err = validateField(validate, fieldId, fieldValue, r.cfg.Fields[i].Validation, r.cfg.Fields[i].Help)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					if firstErr == nil {

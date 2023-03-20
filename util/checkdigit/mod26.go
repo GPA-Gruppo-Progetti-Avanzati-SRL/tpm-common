@@ -1,7 +1,5 @@
 package checkdigit
 
-import "fmt"
-
 /*
  * Algoritmo utilizzato all'interno dei codici a bruciatura. si tratta di una variazione del calcolo del check-digit per codice fiscale.... piuttosto semplificato to say the least
  * Check Digit: 1 Carattere alfabetico “Codice Controllo” calcolato assegnando un peso
@@ -15,14 +13,10 @@ func ComputeMod26CheckDigit(s string) string {
 	v := 0
 	for i, c := range s {
 		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
-			fmt.Print(2)
 			v += 2
 		} else if c >= '0' && c <= '9' {
 			if (i+1)%2 == 1 {
 				v += 1
-				fmt.Print(1)
-			} else {
-				fmt.Print(0)
 			}
 		}
 	}
