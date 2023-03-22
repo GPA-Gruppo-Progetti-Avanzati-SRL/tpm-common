@@ -80,19 +80,24 @@ func TestContextBoolEvaluation(t *testing.T) {
 			expected: true,
 			mode:     expression.AllMustMatch,
 		},
+		{
+			rules:    []string{`"{v:var01}" == "OK"`, `"{$.beneficiario.numero}" == "8188602-NO"`},
+			expected: false,
+			mode:     expression.AllMustMatch,
+		},
 	}
 
 	exprCtx, err := expression.NewContext(expression.WithJsonInput(j), expression.WithVars(map[string]interface{}{"var01": "OK"}))
 	require.NoError(t, err)
 
 	for i, input := range arr {
-		found, err := exprCtx.BoolEvalMany(input.rules, input.mode)
+		found, firstFailed, err := exprCtx.BoolEvalMany(input.rules, input.mode)
 		require.NoError(t, err)
 		require.EqualValues(t, input.expected, found, "Expected doesn't match actual")
 		if found {
 			t.Logf("[expr:%d] evaluated to true", i)
 		} else {
-			t.Logf("[expr:%d] evaluated to false", i)
+			t.Logf("[expr:%d] evaluated to false, first failed was %d", i, firstFailed)
 		}
 	}
 
