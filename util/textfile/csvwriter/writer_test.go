@@ -28,7 +28,7 @@ func TestWriter(t *testing.T) {
 
 	w, err := csvwriter.NewWriter(cfg, csvwriter.WithIoWriter(os.Stdout))
 	require.NoError(t, err)
-	defer w.Close()
+	defer w.Close(true)
 
 	r := w.NewRecord()
 	r.Set("f2", "ciao on field 2")

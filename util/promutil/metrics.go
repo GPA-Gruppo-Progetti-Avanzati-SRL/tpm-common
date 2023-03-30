@@ -8,48 +8,80 @@ import (
 	"strings"
 )
 
-type MetricRegistry []MetricInfo
+type Group []Metric
 
-func InitMetricsRegistry(metrics MetricsConfig) (MetricRegistry, error) {
+var registry map[string]Group
 
-	var metricsRegistry []MetricInfo
+func InitRegistry(cfg map[string]GroupConfig) (map[string]Group, error) {
+	const semLogContext = "metrics::init-registry"
+
+	if len(cfg) > 0 {
+		registry = make(map[string]Group)
+	}
+
+	for ng, gcfg := range cfg {
+		g, err := InitGroup(gcfg)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
+		registry[ng] = g
+	}
+
+	return registry, nil
+}
+
+func GetGroup(n string) (Group, error) {
+	if g, ok := registry[n]; ok {
+		return g, nil
+	}
+
+	return nil, fmt.Errorf("cannot find group of metrics with name %s", n)
+}
+
+func InitGroup(metrics GroupConfig) (Group, error) {
+
+	var group []Metric
 	for _, mCfg := range metrics.Collectors {
 		if mc, err := NewCollector(metrics.Namespace, metrics.Subsystem, mCfg.Name, &mCfg); err != nil {
 			log.Error().Err(err).Str("name", mCfg.Name).Msg("error creating metric")
 			return nil, err
 		} else {
-			metricsRegistry = append(metricsRegistry, MetricInfo{Type: mCfg.Type, Id: mCfg.Id, Name: mCfg.Name, Collector: mc, Labels: mCfg.Labels})
+			group = append(group, Metric{Type: mCfg.Type, Id: mCfg.Id, Name: mCfg.Name, Collector: mc, Labels: mCfg.Labels})
 		}
 	}
 
-	if len(metricsRegistry) == 0 {
+	if len(group) == 0 {
 		log.Warn().Msg("metrics registry is empty")
 	}
 
-	return metricsRegistry, nil
+	return group, nil
 }
 
-func (r MetricRegistry) FindCollectorByName(n string) MetricInfo {
+/*
+func (r Group) FindCollectorByName(n string) Metric {
 	for _, c := range r {
 		if c.Name == n {
 			return c
 		}
 	}
 
-	return MetricInfo{}
+	return Metric{}
 }
+*/
 
-func (r MetricRegistry) FindCollectorById(id string) MetricInfo {
+func (r Group) FindCollectorById(id string) Metric {
 	for _, c := range r {
 		if c.Id == id {
 			return c
 		}
 	}
 
-	return MetricInfo{}
+	return Metric{}
 }
 
-func (r MetricRegistry) SetMetricValueByName(n string, v float64, labels prometheus.Labels) error {
+/*
+func (r Group) SetMetricValueByName(n string, v float64, labels prometheus.Labels) error {
 	if c := r.FindCollectorByName(n); c.Type != "" {
 		setMetricValue(c, v, labels)
 	} else {
@@ -60,8 +92,9 @@ func (r MetricRegistry) SetMetricValueByName(n string, v float64, labels prometh
 
 	return nil
 }
+*/
 
-func (r MetricRegistry) SetMetricValueById(id string, v float64, labels prometheus.Labels) error {
+func (r Group) SetMetricValueById(id string, v float64, labels prometheus.Labels) error {
 	if c := r.FindCollectorById(id); c.Type != "" {
 		setMetricValue(c, v, labels)
 	} else {
@@ -73,7 +106,7 @@ func (r MetricRegistry) SetMetricValueById(id string, v float64, labels promethe
 	return nil
 }
 
-func setMetricValue(c MetricInfo, v float64, labels prometheus.Labels) {
+func setMetricValue(c Metric, v float64, labels prometheus.Labels) {
 
 	labels = fixLabels(c.Labels, labels)
 
@@ -90,7 +123,7 @@ func setMetricValue(c MetricInfo, v float64, labels prometheus.Labels) {
 	}
 }
 
-func fixLabels(cfgLabels LabelsInfo, providedLabels prometheus.Labels) prometheus.Labels {
+func fixLabels(cfgLabels LabelsConfig, providedLabels prometheus.Labels) prometheus.Labels {
 	if len(cfgLabels) == 0 {
 		return nil
 	}
@@ -106,9 +139,23 @@ func fixLabels(cfgLabels LabelsInfo, providedLabels prometheus.Labels) prometheu
 	}
 
 	for _, l := range cfgLabels {
-		if pl, ok := providedLabels[l.Name]; pl != "" && ok {
-			actualLabels[l.Name] = pl
-		} else {
+
+		b := false
+		if l.Id != "" {
+			if pl, ok := providedLabels[l.Id]; pl != "" && ok {
+				actualLabels[l.Name] = pl
+				b = true
+			}
+		}
+
+		if !b {
+			if pl, ok := providedLabels[l.Name]; pl != "" && ok {
+				actualLabels[l.Name] = pl
+				b = true
+			}
+		}
+
+		if !b {
 			actualLabels[l.Name] = l.DefaultValue
 		}
 	}
@@ -116,7 +163,9 @@ func fixLabels(cfgLabels LabelsInfo, providedLabels prometheus.Labels) prometheu
 	return actualLabels
 }
 
-func NewCollector(namespace string, subsystem string, opName string, metricConfig *MetricConfig) (prometheus.Collector, error) {
+func NewCollector(namespace string, subsystem string, opName string, metricConfig *Config) (prometheus.Collector, error) {
+
+	const semLogContext = "metrics::new-collector"
 
 	var c prometheus.Collector
 	switch metricConfig.Type {
@@ -137,15 +186,17 @@ func NewCollector(namespace string, subsystem string, opName string, metricConfi
 	return c, nil
 }
 
-func NewCounter(namespace string, subsystem string, opName string, counterMetrics *MetricConfig) prometheus.Collector /* *prometheus.CounterVec */ {
+func NewCounter(namespace string, subsystem string, opName string, counterMetrics *Config) prometheus.Collector /* *prometheus.CounterVec */ {
+
+	const semLogContext = "metrics::new-counter"
 
 	if counterMetrics.Type != MetricTypeCounter {
-		log.Error().Str("type", counterMetrics.Type).Msg("type mismatch, not a counter")
+		log.Error().Str("type", counterMetrics.Type).Msg(semLogContext + " type mismatch")
 		return nil
 	}
 
 	if namespace == "" || subsystem == "" || opName == "" {
-		log.Error().Msg("counter metric not configured, skipping creation")
+		log.Error().Msg(semLogContext + " metric not configured, skipping creation")
 		return nil
 	}
 
@@ -172,25 +223,27 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 	err := prometheus.Register(c)
 	if err != nil {
 		if aregerr, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			log.Warn().Err(err).Str("name", counterMetrics.Name).Msg("counter already registered")
+			log.Warn().Err(err).Str("name", counterMetrics.Name).Msg(semLogContext + " metric already registered")
 			return aregerr.ExistingCollector
 		} else {
-			log.Error().Err(err).Str("name", counterMetrics.Name).Msg("counter error")
+			log.Error().Err(err).Str("name", counterMetrics.Name).Msg(semLogContext)
 		}
 	}
 
 	return c
 }
 
-func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *MetricConfig) prometheus.Collector /* *prometheus.CounterVec */ {
+func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *Config) prometheus.Collector /* *prometheus.CounterVec */ {
+
+	const semLogContext = "metrics::new-gauge"
 
 	if gaugeMetrics.Type != MetricTypeGauge {
-		log.Error().Str("type", gaugeMetrics.Type).Msg("type mismatch, not a gauge")
+		log.Error().Str("type", gaugeMetrics.Type).Msg(semLogContext + " type mismatch")
 		return nil
 	}
 
 	if namespace == "" || subsystem == "" || opName == "" {
-		log.Error().Msg("gauge metric not configured, skipping creation")
+		log.Error().Msg(semLogContext + " metric not configured, skipping creation")
 		return nil
 	}
 
@@ -217,25 +270,27 @@ func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *M
 	err := prometheus.Register(c)
 	if err != nil {
 		if aregerr, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			log.Warn().Err(err).Str("name", gaugeMetrics.Name).Msg("counter already registered")
+			log.Warn().Err(err).Str("name", gaugeMetrics.Name).Msg(semLogContext + " metric already registered")
 			return aregerr.ExistingCollector
 		} else {
-			log.Error().Err(err).Str("name", gaugeMetrics.Name).Msg("gauge error")
+			log.Error().Err(err).Str("name", gaugeMetrics.Name).Msg(semLogContext)
 		}
 	}
 
 	return c
 }
 
-func NewHistogram(namespace string, subsystem string, opName string, histogramMetrics *MetricConfig) prometheus.Collector {
+func NewHistogram(namespace string, subsystem string, opName string, histogramMetrics *Config) prometheus.Collector {
+
+	const semLogContext = "metrics::new-histogram"
 
 	if histogramMetrics.Type != MetricTypeHistogram {
-		log.Error().Str("type", histogramMetrics.Type).Msg("type mismatch, not a histogram")
+		log.Error().Str("type", histogramMetrics.Type).Msg(semLogContext + " type mismatch")
 		return nil
 	}
 
 	if namespace == "" || subsystem == "" || opName == "" {
-		log.Error().Msg("histogram metric not configured, skipping creation")
+		log.Error().Msg(semLogContext + " metric not configured, skipping creation")
 		return nil
 	}
 
@@ -272,10 +327,10 @@ func NewHistogram(namespace string, subsystem string, opName string, histogramMe
 	err := prometheus.Register(h)
 	if err != nil {
 		if aregerr, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			log.Warn().Err(err).Str("name", histogramMetrics.Name).Msg("histogram already registered")
+			log.Warn().Err(err).Str("name", histogramMetrics.Name).Msg(semLogContext + " metric already registered")
 			return aregerr.ExistingCollector
 		} else {
-			log.Error().Err(err).Str("name", histogramMetrics.Name).Msg("histogram error")
+			log.Error().Err(err).Str("name", histogramMetrics.Name).Msg(semLogContext)
 		}
 	}
 

@@ -28,14 +28,15 @@ const MetricTypeHistogram = "histogram"
 //	Labels string
 //}
 
-type LabelInfo struct {
-	Name         string `yaml:"name" mapstructure:"name" json:"name"`
-	DefaultValue string `yaml:"default-value" mapstructure:"default-value" json:"default-value"`
+type LabelConfig struct {
+	Id           string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Name         string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	DefaultValue string `yaml:"default-value,omitempty" mapstructure:"default-value,omitempty" json:"default-value,omitempty"`
 }
 
-type LabelsInfo []LabelInfo
+type LabelsConfig []LabelConfig
 
-func (li LabelsInfo) Contains(n string) bool {
+func (li LabelsConfig) Contains(n string) bool {
 	for _, ln := range li {
 		if ln.Name == n {
 			return true
@@ -45,25 +46,26 @@ func (li LabelsInfo) Contains(n string) bool {
 	return false
 }
 
-type MetricInfo struct {
+type Metric struct {
 	Id        string
 	Type      string
 	Name      string
 	Collector prometheus.Collector
-	Labels    LabelsInfo
+	Labels    LabelsConfig
 }
 
-type MetricsConfig struct {
-	Namespace  string         `yaml:"namespace" mapstructure:"namespace" json:"namespace"`
-	Subsystem  string         `yaml:"subsystem" mapstructure:"subsystem" json:"subsystem"`
-	Collectors []MetricConfig `yaml:"collectors" mapstructure:"collectors" json:"collectors"`
+type GroupConfig struct {
+	GroupId    string   `yaml:"group-id,omitempty" mapstructure:"group-id,omitempty" json:"group-id,omitempty"`
+	Namespace  string   `yaml:"namespace" mapstructure:"namespace" json:"namespace"`
+	Subsystem  string   `yaml:"subsystem" mapstructure:"subsystem" json:"subsystem"`
+	Collectors []Config `yaml:"collectors" mapstructure:"collectors" json:"collectors"`
 }
 
-type MetricConfig struct {
+type Config struct {
 	Id      string                `yaml:"id" mapstructure:"id" json:"id"`
 	Name    string                `yaml:"name" mapstructure:"name" json:"name"`
 	Help    string                `yaml:"help" mapstructure:"help" json:"help"`
-	Labels  []LabelInfo           `yaml:"labels" mapstructure:"labels" json:"labels"`
+	Labels  []LabelConfig         `yaml:"labels" mapstructure:"labels" json:"labels"`
 	Type    string                `yaml:"type" mapstructure:"type" json:"type"`
 	Buckets HistogramBucketConfig `yaml:"buckets" mapstructure:"buckets" json:"buckets"`
 }

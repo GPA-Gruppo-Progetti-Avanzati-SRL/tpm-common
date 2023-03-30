@@ -209,6 +209,7 @@ func (pvr *Context) BoolEvalMany(varExpressions []string, mode EvaluationMode) (
 
 func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 
+	const semLogContext = "expression-ctx::bool-eval-one"
 	// The empty expression evaluates to true.
 	if v == "" {
 		return true, nil
@@ -219,12 +220,14 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	if isExpr {
 		v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 		if err != nil {
+			log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 			return false, err
 		}
 	}
 
 	exprValue, err := gval.Evaluate(v, pvr)
 	if err != nil {
+		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 		return false, err
 	}
 
