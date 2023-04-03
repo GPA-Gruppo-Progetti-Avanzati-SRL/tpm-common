@@ -12,7 +12,7 @@ type Group []Metric
 
 var registry map[string]Group
 
-func InitRegistry(cfg map[string]GroupConfig) (map[string]Group, error) {
+func InitRegistry(cfg map[string]MetricGroupConfig) (map[string]Group, error) {
 	const semLogContext = "metrics::init-registry"
 
 	if len(cfg) > 0 {
@@ -39,7 +39,7 @@ func GetGroup(n string) (Group, error) {
 	return nil, fmt.Errorf("cannot find group of metrics with name %s", n)
 }
 
-func InitGroup(metrics GroupConfig) (Group, error) {
+func InitGroup(metrics MetricGroupConfig) (Group, error) {
 
 	var group []Metric
 	for _, mCfg := range metrics.Collectors {
@@ -123,7 +123,7 @@ func setMetricValue(c Metric, v float64, labels prometheus.Labels) {
 	}
 }
 
-func fixLabels(cfgLabels LabelsConfig, providedLabels prometheus.Labels) prometheus.Labels {
+func fixLabels(cfgLabels MetricLabelsConfig, providedLabels prometheus.Labels) prometheus.Labels {
 	if len(cfgLabels) == 0 {
 		return nil
 	}
@@ -163,7 +163,7 @@ func fixLabels(cfgLabels LabelsConfig, providedLabels prometheus.Labels) prometh
 	return actualLabels
 }
 
-func NewCollector(namespace string, subsystem string, opName string, metricConfig *Config) (prometheus.Collector, error) {
+func NewCollector(namespace string, subsystem string, opName string, metricConfig *MetricConfig) (prometheus.Collector, error) {
 
 	const semLogContext = "metrics::new-collector"
 
@@ -186,7 +186,7 @@ func NewCollector(namespace string, subsystem string, opName string, metricConfi
 	return c, nil
 }
 
-func NewCounter(namespace string, subsystem string, opName string, counterMetrics *Config) prometheus.Collector /* *prometheus.CounterVec */ {
+func NewCounter(namespace string, subsystem string, opName string, counterMetrics *MetricConfig) prometheus.Collector /* *prometheus.CounterVec */ {
 
 	const semLogContext = "metrics::new-counter"
 
@@ -233,7 +233,7 @@ func NewCounter(namespace string, subsystem string, opName string, counterMetric
 	return c
 }
 
-func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *Config) prometheus.Collector /* *prometheus.CounterVec */ {
+func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *MetricConfig) prometheus.Collector /* *prometheus.CounterVec */ {
 
 	const semLogContext = "metrics::new-gauge"
 
@@ -280,7 +280,7 @@ func NewGauge(namespace string, subsystem string, opName string, gaugeMetrics *C
 	return c
 }
 
-func NewHistogram(namespace string, subsystem string, opName string, histogramMetrics *Config) prometheus.Collector {
+func NewHistogram(namespace string, subsystem string, opName string, histogramMetrics *MetricConfig) prometheus.Collector {
 
 	const semLogContext = "metrics::new-histogram"
 
