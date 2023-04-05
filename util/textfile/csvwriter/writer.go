@@ -29,7 +29,7 @@ func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 	const semLogContext = "csv-writer::set-field"
 
 	var s string
-	if fieldValue != nil && !reflect.ValueOf(fieldValue).IsNil() {
+	if fieldValue != nil && !(reflect.ValueOf(fieldValue).Kind() == reflect.Ptr && reflect.ValueOf(fieldValue).IsNil()) {
 		s = fmt.Sprint(fieldValue)
 	}
 
