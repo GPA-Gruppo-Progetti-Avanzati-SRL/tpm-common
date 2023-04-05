@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"os"
+	"reflect"
 )
 
 type Writer interface {
@@ -22,11 +24,17 @@ type Record struct {
 	fieldMap  map[string]int
 }
 
-func (r *Record) Set(fieldId string, fieldValue string) error {
+func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 
 	const semLogContext = "csv-writer::set-field"
+
+	var s string
+	if fieldValue != nil && !reflect.ValueOf(fieldValue).IsNil() {
+		s = fmt.Sprint(fieldValue)
+	}
+
 	if fIndex, ok := r.fieldMap[fieldId]; ok {
-		r.csvRecord[fIndex] = fieldValue
+		r.csvRecord[fIndex] = s
 	} else {
 		log.Error().Str("field-id", fieldId).Msg(semLogContext + " field not found")
 	}
