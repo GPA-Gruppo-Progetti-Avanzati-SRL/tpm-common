@@ -27,6 +27,14 @@ func (l *GeometricTraceLogger) IsEnabled() bool {
 	return _isEnabled(l.numberOfEntries + 1)
 }
 
+func (l *GeometricTraceLogger) CheckAndSetOnOff() bool {
+	rc := _isEnabled(l.numberOfEntries + 1)
+	if !rc {
+		l.numberOfEntries++
+	}
+	return rc
+}
+
 func (l *GeometricTraceLogger) LogEvent(e *zerolog.Event, msg string) {
 	l.numberOfEntries++
 

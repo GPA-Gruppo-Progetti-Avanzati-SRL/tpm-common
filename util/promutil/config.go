@@ -92,6 +92,11 @@ func CoalesceMetricsConfig(ref MetricsConfigReference, defaultVals MetricsConfig
 	if ref.HistogramId != "" {
 		gid.HistogramId = ref.HistogramId
 	}
+
+	if ref.GaugeId != "" {
+		gid.GaugeId = ref.GaugeId
+	}
+
 	return gid
 }
 

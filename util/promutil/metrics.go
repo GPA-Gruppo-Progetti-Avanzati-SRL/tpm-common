@@ -95,11 +95,13 @@ func (r Group) SetMetricValueByName(n string, v float64, labels prometheus.Label
 */
 
 func (r Group) SetMetricValueById(id string, v float64, labels prometheus.Labels) error {
+
+	const semLogContext = "metrics::set-metric-value-by-id"
 	if c := r.FindCollectorById(id); c.Type != "" {
 		setMetricValue(c, v, labels)
 	} else {
 		err := errors.New("cannot find collector by id")
-		log.Error().Err(err).Str("id", id).Send()
+		log.Error().Err(err).Str("id", id).Msg(semLogContext)
 		return err
 	}
 
