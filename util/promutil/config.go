@@ -30,6 +30,13 @@ const MetricTypeHistogram = "histogram"
 
 const MetricsConfigReferenceLocalGroup = "local"
 
+var DisabledMetricsConfigReference = MetricsConfigReference{
+	GId:         "-",
+	CounterId:   "-",
+	HistogramId: "-",
+	GaugeId:     "-",
+}
+
 type MetricsConfigReference struct {
 	GId         string `yaml:"group-id,omitempty" mapstructure:"group-id,omitempty" json:"group-id,omitempty"`
 	CounterId   string `yaml:"counter-id,omitempty" mapstructure:"counter-id,omitempty" json:"counter-id,omitempty"`
