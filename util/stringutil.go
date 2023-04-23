@@ -9,15 +9,6 @@ import (
 	"text/scanner"
 )
 
-func Coalesce(args ...string) string {
-	for _, str := range args {
-		if str != "" {
-			return str
-		}
-	}
-	return ""
-}
-
 // StringJoin joins an array of strings with separator (same as strings.Join) and truncate the result if the resulting len is bigger than maxLength.
 // If maxLength == 0 no truncation happens, if maxLength > 0 the end of the string is truncated (that is keep left), if maxLength < 0 the beginning of the string
 // is truncated.
