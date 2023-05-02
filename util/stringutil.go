@@ -98,6 +98,22 @@ func StringArrayContains(s []string, str string) bool {
 	return false
 }
 
+var leadCloseWhiteSpaceRegexp = regexp.MustCompile(`^[\s\p{Zs}]+|[\s\p{Zs}]+$`)
+var internalWhiteSpaceRegexp = regexp.MustCompile(`[\s\p{Zs}]{2,}|[\r\n]+`)
+
+// StripDuplicateWhiteSpaces TrimSpaces and replaces sequences of \r\n and sequence of blanks with one single blank character. Used in the tpm-batis.
+// The \p{Zs} should match any kind of space character
+func StripDuplicateWhiteSpaces(s string) string {
+
+	if s != "" {
+		s = leadCloseWhiteSpaceRegexp.ReplaceAllString(s, "")
+		s = internalWhiteSpaceRegexp.ReplaceAllString(s, " ")
+	}
+
+	return s
+}
+
+// ParseSetClause where it has been used...? May be in the old az tables commander
 func ParseSetClause(src string, clauseDelimiter rune) (map[string]interface{}, error) {
 
 	var s scanner.Scanner
