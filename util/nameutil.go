@@ -38,7 +38,6 @@ func NameWellFormed(n string) bool {
 }
 
 func FieldNameWellFormed(n string) bool {
-
 	if n == "" {
 		return false
 	}
