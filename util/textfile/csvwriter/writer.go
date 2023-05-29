@@ -24,6 +24,10 @@ type Record struct {
 	fieldMap  map[string]int
 }
 
+func NewRecord(numFields int, fieldMap map[string]int) Record {
+	return Record{csvRecord: make([]string, numFields, numFields), fieldMap: fieldMap}
+}
+
 func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 
 	const semLogContext = "csv-writer::set-field"
@@ -142,7 +146,7 @@ func (w *writerImpl) Filename() string {
 }
 
 func (w *writerImpl) NewRecord() Record {
-	return Record{csvRecord: make([]string, len(w.cfg.Fields), len(w.cfg.Fields)), fieldMap: w.fieldMap}
+	return NewRecord(len(w.cfg.Fields), w.fieldMap)
 }
 
 func (w *writerImpl) WriteRecord(rec Record) error {
