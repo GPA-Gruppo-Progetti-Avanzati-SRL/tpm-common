@@ -47,6 +47,10 @@ func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 	return nil
 }
 
+func (r *Record) Fields() []string {
+	return r.csvRecord
+}
+
 type writerImpl struct {
 	cfg       Config
 	csvWriter *csv.Writer
