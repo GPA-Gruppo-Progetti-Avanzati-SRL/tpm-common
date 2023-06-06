@@ -14,7 +14,7 @@ func TestWriter(t *testing.T) {
 		HeaderLine: true,
 		Separator:  "|",
 		FileName:   "",
-		Fields: []textfile.FieldInfo{
+		Fields: []textfile.CSVFieldInfo{
 			{
 				Id:   "f1",
 				Name: "field01",

@@ -6,10 +6,10 @@ import (
 )
 
 type Config struct {
-	HeaderLine bool                 `yaml:"header-line,omitempty" mapstructure:"header-line,omitempty" json:"header-line,omitempty"`
-	Separator  string               `yaml:"separator,omitempty" mapstructure:"separator,omitempty" json:"separator,omitempty"`
-	FileName   string               `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
-	Fields     []textfile.FieldInfo `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
+	HeaderLine bool                    `yaml:"header-line,omitempty" mapstructure:"header-line,omitempty" json:"header-line,omitempty"`
+	Separator  string                  `yaml:"separator,omitempty" mapstructure:"separator,omitempty" json:"separator,omitempty"`
+	FileName   string                  `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
+	Fields     []textfile.CSVFieldInfo `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
 	ioWriter   io.Writer
 }
 
@@ -39,7 +39,7 @@ func WithFilename(fn string) Option {
 	}
 }
 
-func WithFields(fi []textfile.FieldInfo) Option {
+func WithFields(fi []textfile.CSVFieldInfo) Option {
 	return func(cfg *Config) {
 		cfg.Fields = fi
 	}

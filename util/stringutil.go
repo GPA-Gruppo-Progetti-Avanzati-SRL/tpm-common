@@ -26,6 +26,15 @@ func StringJoin(args []string, sep string, maxLength int) string {
 	return s
 }
 
+func ToFixedLength(s string, maxLength int) (string, bool) {
+	s, adjusted := ToMaxLength(s, maxLength)
+	if !adjusted {
+		s, adjusted = Pad2Length(s, maxLength, " ")
+	}
+
+	return s, adjusted
+}
+
 func ToMaxLength(s string, maxLength int) (string, bool) {
 
 	const semLogContext = "common-util::to-max-length"

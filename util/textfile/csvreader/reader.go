@@ -83,7 +83,7 @@ func NewReader(cfg Config, opts ...Option) (Reader, error) {
 			r.cfg.AdjustFieldIndexes(fieldNames)
 		} else {
 			for i, s := range fieldNames {
-				r.cfg.Fields = append(r.cfg.Fields, textfile.FieldInfo{Name: s, Index: i})
+				r.cfg.Fields = append(r.cfg.Fields, textfile.CSVFieldInfo{Name: s, Index: i})
 			}
 		}
 

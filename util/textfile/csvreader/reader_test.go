@@ -3,7 +3,7 @@ package csvreader_test
 import (
 	"bytes"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
+	csvreader2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -40,14 +40,14 @@ func TestReader(t *testing.T) {
 	}
 	buffers = append(buffers, buffer3)
 
-	cfgs := []csvreader.Config{
-		{HeaderLine: true, Separator: ";", Fields: []textfile.FieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
+	cfgs := []csvreader2.Config{
+		{HeaderLine: true, Separator: ";", Fields: []textfile.CSVFieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
 		{HeaderLine: false, Separator: ";"},
 		{HeaderLine: false, Separator: "|"},
 	}
 
 	for i, cfg := range cfgs {
-		r, err := csvreader.NewReader(cfg, csvreader.WithFields(cfg.Fields), csvreader.WithIoReader(&buffers[i]))
+		r, err := csvreader2.NewReader(cfg, csvreader2.WithFields(cfg.Fields), csvreader2.WithIoReader(&buffers[i]))
 		require.NoError(t, err)
 
 		parsed, err := r.Read()
