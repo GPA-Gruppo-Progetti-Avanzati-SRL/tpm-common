@@ -129,13 +129,27 @@ const (
 	AllMustMatch EvaluationMode = "all-must-match"
 )
 
-func (pvr *Context) Add(n string, v interface{}) error {
+func (pvr *Context) SetInput(n string, v interface{}) error {
+	if pvr.input == nil {
+		pvr.input = make(map[string]interface{})
+	}
+
+	pvr.input[n] = v
+	return nil
+}
+
+func (pvr *Context) SetVar(n string, v interface{}) error {
 	if pvr.vars == nil {
 		pvr.vars = make(map[string]interface{})
 	}
 
 	pvr.vars[n] = v
 	return nil
+}
+
+// Add Deprecated
+func (pvr *Context) Add(n string, v interface{}) error {
+	return pvr.SetVar(n, v)
 }
 
 func (pvr *Context) EvalOne(v string) (interface{}, error) {
