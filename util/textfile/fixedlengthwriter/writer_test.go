@@ -1,6 +1,7 @@
 package fixedlengthwriter_test
 
 import (
+	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/fixedlengthwriter"
 	"github.com/stretchr/testify/require"
@@ -11,7 +12,6 @@ import (
 func TestWriter(t *testing.T) {
 
 	cfg := fixedlengthwriter.Config{
-		FileName: "",
 		Fields: []textfile.FixedLengthFieldInfo{
 			{
 				Id:     "f1",
@@ -25,6 +25,11 @@ func TestWriter(t *testing.T) {
 			},
 		},
 	}
+
+	b, err := json.Marshal(cfg)
+	require.NoError(t, err)
+
+	t.Log(string(b))
 
 	w, err := fixedlengthwriter.NewWriter(cfg, fixedlengthwriter.WithIoWriter(os.Stdout))
 	require.NoError(t, err)
