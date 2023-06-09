@@ -17,3 +17,12 @@ func IntCoalesce(args ...int) int {
 	}
 	return 0
 }
+
+func CoalesceError(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
