@@ -17,6 +17,8 @@ type Writer interface {
 	WriteMap(map[string]interface{}) error
 	WriteRecord(Record) error
 	NewRecord() Record
+	NewHeadRecord() Record
+	NewTailRecord() Record
 	Filename() string
 }
 
