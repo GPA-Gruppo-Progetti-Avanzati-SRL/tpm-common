@@ -158,6 +158,11 @@ func (w *writerImpl) Close(removeFile bool) {
 		w.ioWriter = nil
 	}
 
+	if w.osFile != nil {
+		_ = w.osFile.Close()
+		w.osFile = nil
+	}
+
 	if removeFile && w.cfg.FileName != "" {
 		_ = os.Remove(w.cfg.FileName)
 	}
