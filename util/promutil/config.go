@@ -48,6 +48,10 @@ func (mCfg MetricsConfigReference) IsLocal() bool {
 	return mCfg.GId == MetricsConfigReferenceLocalGroup
 }
 
+func (mCfg MetricsConfigReference) IsZero() bool {
+	return mCfg.GId == ""
+}
+
 func (mCfg MetricsConfigReference) IsEnabled() bool {
 	return mCfg.GId != "-"
 }
