@@ -13,6 +13,8 @@ type FixedLengthFieldDefinition struct {
 	Length int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
 	Help   string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
 	Index  int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
+	Trim   bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	Drop   bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
 }
 
 type FixedLengthRecordMode string
@@ -30,6 +32,17 @@ type FixedLengthRecordDefinition struct {
 	LengthMode          FixedLengthRecordMode        `yaml:"length-mode,omitempty" mapstructure:"length-mode,omitempty" json:"length-mode,omitempty"`
 	PrefixDiscriminator string                       `yaml:"prefix-discriminator,omitempty" mapstructure:"prefix-discriminator,omitempty" json:"prefix-discriminator,omitempty"`
 	FieldMap            map[string]int
+}
+
+func (r *FixedLengthRecordDefinition) NumOfDroppedFields() int {
+	numDropped := 0
+	for _, f := range r.Fields {
+		if f.Drop {
+			numDropped++
+		}
+	}
+
+	return numDropped
 }
 
 func (r *FixedLengthRecordDefinition) AdjustFieldInfoIndex() error {
@@ -64,19 +77,28 @@ func (r *FixedLengthRecordDefinition) AdjustFieldInfoIndex() error {
 
 func (r *FixedLengthRecordDefinition) ComputeFieldMap() {
 	fieldMap := make(map[string]int)
-	for i, f := range r.Fields {
+
+	fndx := 0
+	for _, f := range r.Fields {
+
+		if f.Drop {
+			continue
+		}
+
 		fId := f.Id
 		if fId == "" {
 			fId = f.Name
 		}
-		fieldMap[fId] = i
+
+		fieldMap[fId] = fndx
+		fndx++
 	}
 
 	r.FieldMap = fieldMap
 	return
 }
 
-func (r *FixedLengthRecordDefinition) ValidateLineLength(lineno int, l string) error {
+func (r *FixedLengthRecordDefinition) ValidateLineLength(lineno int, l []byte) error {
 	switch r.LengthMode {
 	case FixedLengthRecordModeAtLeast:
 		if len(l) < r.Len {

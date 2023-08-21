@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/rs/zerolog/log"
 	"os"
+	"strings"
 )
 
 type Reader interface {
@@ -33,7 +35,33 @@ type Record struct {
 	fieldMap map[string]int
 }
 
-func (pr *Record) parse() error {
+func (pr *Record) parse(l []byte, definition fixedlengthfile.FixedLengthRecordDefinition) error {
+
+	pr.Fields = make([]string, len(definition.Fields)-definition.NumOfDroppedFields(), len(definition.Fields)-definition.NumOfDroppedFields())
+	fndx := 0
+	for _, f := range definition.Fields {
+
+		if f.Drop {
+			continue
+		}
+
+		if f.Offset >= len(l) {
+			return nil
+		}
+
+		lenField := f.Length
+		if (f.Offset + lenField) > len(l) {
+			lenField = len(l) - f.Offset
+		}
+
+		res := string(l[f.Offset : f.Offset+lenField])
+		if f.Trim {
+			res = strings.TrimSpace(res)
+		}
+		pr.Fields[fndx] = res
+		fndx++
+	}
+
 	return nil
 }
 
@@ -168,7 +196,7 @@ func (w *readerImpl) read() (Record, error) {
 		}
 
 		r, _ := w.cfg.FindRecordDefinitionById(rId)
-		err = r.ValidateLineLength(w.lineNumber, string(l))
+		err = r.ValidateLineLength(w.lineNumber, l)
 		if err != nil {
 			return Record{RecordId: ErrRecordId, LineNo: w.lineNumber}, err
 		}
@@ -180,7 +208,7 @@ func (w *readerImpl) read() (Record, error) {
 			fieldMap: r.FieldMap,
 		}
 
-		err = pr.parse()
+		err = pr.parse(l, r)
 		if err != nil {
 			return Record{RecordId: ErrRecordId, LineNo: w.lineNumber}, err
 		}
