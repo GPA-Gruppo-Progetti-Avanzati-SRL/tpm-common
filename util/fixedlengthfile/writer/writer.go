@@ -1,11 +1,11 @@
-package fixedlengthwriter
+package writer
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
@@ -24,15 +24,15 @@ type Writer interface {
 
 type Record struct {
 	csvRecord []string
-	fields    []textfile.FixedLengthFieldInfo
+	fields    []fixedlengthfile.FixedLengthFieldDefinition
 	fieldMap  map[string]int
 }
 
-func newRecord(fields []textfile.FixedLengthFieldInfo, fieldMap map[string]int) Record {
+func newRecord(fields []fixedlengthfile.FixedLengthFieldDefinition, fieldMap map[string]int) Record {
 	return Record{csvRecord: make([]string, len(fields), len(fields)), fields: fields, fieldMap: fieldMap}
 }
 
-func computeFieldMap(fields []textfile.FixedLengthFieldInfo) map[string]int {
+func computeFieldMap(fields []fixedlengthfile.FixedLengthFieldDefinition) map[string]int {
 	fieldMap := make(map[string]int)
 	for i, f := range fields {
 		fId := f.Id
@@ -197,7 +197,7 @@ func (w *writerImpl) WriteMap(m map[string]interface{}) error {
 	panic(errors.New("not implemented record"))
 }
 
-//func checkFieldInfo(fields []textfile.FixedLengthFieldInfo) (map[string]int, error) {
+//func checkFieldInfo(fields []textfile.FixedLengthFieldDefinition) (map[string]int, error) {
 //	const semLogContext = "fixed-length-writer::new"
 //	fieldMap := make(map[string]int)
 //	recordLength := -1

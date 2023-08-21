@@ -66,9 +66,33 @@ func TestMaxLengh(t *testing.T) {
 	}
 }
 
+type InputWanted4PrefixWithWildCard struct {
+	input        string
+	prefix       string
+	wildCardChar byte
+	shouldMatch  bool
+}
+
+func TestHasPrefixWithWildCard(t *testing.T) {
+
+	a := assert.New(t)
+	var s []InputWanted4PrefixWithWildCard
+
+	s = []InputWanted4PrefixWithWildCard{
+		{input: "0123456789", prefix: "01234", wildCardChar: '*', shouldMatch: true},
+		{input: "0123D56789", prefix: "01234", wildCardChar: '*', shouldMatch: false},
+		{input: "0123456789", prefix: "01*34", wildCardChar: '*', shouldMatch: true},
+	}
+
+	for _, iw := range s {
+		b := util.HasPrefixWithWildCard(iw.input, iw.prefix, iw.wildCardChar)
+		a.Equal(iw.shouldMatch, b)
+	}
+}
+
 func TestPadLengh(t *testing.T) {
 
-	assert := assert.New(t)
+	a := assert.New(t)
 	var s []InputWanted
 
 	s = []InputWanted{
@@ -82,13 +106,13 @@ func TestPadLengh(t *testing.T) {
 	for _, iw := range s {
 		v, _ := util.Pad2Length(iw.input, iw.param, "-")
 		fmt.Printf("%s (%d) --> %s\n", iw.input, iw.param, v)
-		assert.Equal(iw.wanted, v, "pad to length: strings should match")
+		a.Equal(iw.wanted, v, "pad to length: strings should match")
 	}
 }
 
 func TestStrings(t *testing.T) {
 
-	assert := assert.New(t)
+	a := assert.New(t)
 
 	var s []InputWanted
 	var modS string
@@ -106,7 +130,7 @@ func TestStrings(t *testing.T) {
 	for _, iw := range s {
 		modS = util.Decamelize(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
-		assert.Equal(iw.wanted, modS, "decamelize: strings should match")
+		a.Equal(iw.wanted, modS, "decamelize: strings should match")
 	}
 
 	// Dasherize
@@ -122,7 +146,7 @@ func TestStrings(t *testing.T) {
 	for _, iw := range s {
 		modS = util.Dasherize(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
-		assert.Equal(iw.wanted, modS, "dasherize: strings should match")
+		a.Equal(iw.wanted, modS, "dasherize: strings should match")
 	}
 
 	// Camelize
@@ -140,7 +164,7 @@ func TestStrings(t *testing.T) {
 	for _, iw := range s {
 		modS = util.Camelize(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
-		assert.Equal(iw.wanted, modS, "camelize: strings should match")
+		a.Equal(iw.wanted, modS, "camelize: strings should match")
 	}
 
 	// Classify
@@ -157,7 +181,7 @@ func TestStrings(t *testing.T) {
 	for _, iw := range s {
 		modS = util.Classify(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
-		assert.Equal(iw.wanted, modS, "classify: strings should match")
+		a.Equal(iw.wanted, modS, "classify: strings should match")
 	}
 
 	// Underscore
@@ -173,6 +197,6 @@ func TestStrings(t *testing.T) {
 	for _, iw := range s {
 		modS = util.Underscore(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
-		assert.Equal(iw.wanted, modS, "underscore: strings should match")
+		a.Equal(iw.wanted, modS, "underscore: strings should match")
 	}
 }

@@ -81,6 +81,25 @@ func Pad2Length(s string, maxLength int, padChar string) (string, bool) {
 	return s, padded
 }
 
+func HasPrefixWithWildCard(s string, prefix string, wildCh byte) bool {
+
+	if len(s) < len(prefix) {
+		return false
+	}
+
+	for cndx := 0; cndx < len(prefix); cndx++ {
+		if prefix[cndx] == wildCh {
+			continue
+		}
+
+		if s[cndx] != prefix[cndx] {
+			return false
+		}
+	}
+
+	return true
+}
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func GenerateStringOfLength(n int) string {

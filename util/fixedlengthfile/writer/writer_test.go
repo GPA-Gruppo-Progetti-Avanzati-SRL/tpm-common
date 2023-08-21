@@ -1,9 +1,9 @@
-package fixedlengthwriter_test
+package writer_test
 
 import (
 	"encoding/json"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/fixedlengthwriter"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile/writer"
 	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
@@ -11,8 +11,8 @@ import (
 
 func TestWriter(t *testing.T) {
 
-	cfg := fixedlengthwriter.Config{
-		Fields: []textfile.FixedLengthFieldInfo{
+	cfg := writer.Config{
+		Fields: []fixedlengthfile.FixedLengthFieldDefinition{
 			{
 				Id:     "f1",
 				Name:   "field01",
@@ -31,7 +31,7 @@ func TestWriter(t *testing.T) {
 
 	t.Log(string(b))
 
-	w, err := fixedlengthwriter.NewWriter(cfg, fixedlengthwriter.WithIoWriter(os.Stdout))
+	w, err := writer.NewWriter(cfg, writer.WithIoWriter(os.Stdout))
 	require.NoError(t, err)
 	defer w.Close(true)
 
