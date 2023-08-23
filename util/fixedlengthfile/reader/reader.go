@@ -35,6 +35,15 @@ type Record struct {
 	fieldMap map[string]int
 }
 
+func (r *Record) Get(n string, defVal string) (string, bool) {
+	v, ok := r.fieldMap[n]
+	if !ok {
+		return defVal, ok
+	}
+
+	return r.Fields[v], ok
+}
+
 func (pr *Record) parse(l []byte, definition fixedlengthfile.FixedLengthRecordDefinition) error {
 
 	pr.Fields = make([]string, len(definition.Fields)-definition.NumOfDroppedFields(), len(definition.Fields)-definition.NumOfDroppedFields())
