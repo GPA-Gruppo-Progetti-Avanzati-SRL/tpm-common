@@ -3,7 +3,7 @@ package reader_test
 import (
 	"bytes"
 	_ "embed"
-	fixelengthfile2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile/reader"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestNewReader(t *testing.T) {
 		FileName:       "",
 		Discriminator:  "prefix",
 		EmptyLinesMode: reader.EmptyLinesModeKeep,
-		Records: []fixelengthfile2.FixedLengthRecordDefinition{
+		Records: []fixedlengthfile.FixedLengthRecordDefinition{
 			reader.RHDefinition,
 			reader.RHEFDefinition,
 			reader.RH61Definition,
