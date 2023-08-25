@@ -35,6 +35,16 @@ type Record struct {
 	fieldMap map[string]int
 }
 
+func (r *Record) String() string {
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("[%d] %s: num-fields: %d", r.LineNo, r.RecordId, len(r.Fields)))
+	for k, v := range r.fieldMap {
+		sb.WriteString(fmt.Sprintf(" (%s: %s)", k, r.Fields[v]))
+	}
+	return sb.String()
+}
+
 func (r *Record) Get(n string, defVal string) (string, bool) {
 	v, ok := r.fieldMap[n]
 	if !ok {

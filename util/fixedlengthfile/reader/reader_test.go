@@ -48,7 +48,7 @@ func TestNewReader(t *testing.T) {
 	require.NoError(t, err)
 
 	for err == nil {
-		log.Info().Interface("r", r).Msg("record")
+		log.Info().Str("r", r.String()).Send()
 		r, err = reader.Read()
 	}
 
