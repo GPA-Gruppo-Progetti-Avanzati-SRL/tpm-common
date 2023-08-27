@@ -8,6 +8,19 @@ import (
 	"regexp"
 )
 
+func FileInfo(fn string) (os.FileInfo, bool) {
+	if fi, err := os.Stat(fn); err == nil {
+		return fi, true
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		return nil, false
+	} else {
+		// Schrodinger: file may or may not exist. See err for details.
+		// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
+		return nil, false
+	}
+}
+
 func FileExists(fn string) bool {
 	if _, err := os.Stat(fn); err == nil {
 		return true
