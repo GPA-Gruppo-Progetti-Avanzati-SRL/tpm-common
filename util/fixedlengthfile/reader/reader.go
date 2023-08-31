@@ -45,7 +45,12 @@ func (r *Record) String() string {
 	return sb.String()
 }
 
-func (r *Record) Get(n string, defVal string) (string, bool) {
+func (r *Record) Get(n string, defVal string) string {
+	v, _ := r.GetWithIndicator(n, defVal)
+	return v
+}
+
+func (r *Record) GetWithIndicator(n string, defVal string) (string, bool) {
 	v, ok := r.fieldMap[n]
 	if !ok {
 		return defVal, ok
