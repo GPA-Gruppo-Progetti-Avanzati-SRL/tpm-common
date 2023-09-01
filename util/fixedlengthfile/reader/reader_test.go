@@ -3,6 +3,7 @@ package reader_test
 import (
 	"bytes"
 	_ "embed"
+	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile/reader"
 	"github.com/rs/zerolog/log"
@@ -41,20 +42,33 @@ func TestNewReader(t *testing.T) {
 	}
 
 	strReader := bytes.NewReader(example)
-	reader, err := reader.NewReader(cfg, reader.WithIoReader(strReader))
+	rdr, err := reader.NewReader(cfg, reader.WithIoReader(strReader))
 	require.NoError(t, err)
 
-	r, err := reader.Read()
+	r, err := rdr.Read()
 	require.NoError(t, err)
 
 	for err == nil {
-		log.Info().Str("r", r.String()).Send()
-		r, err = reader.Read()
+		log.Info().Str("r", r.String()).Str("record-type", r.Get("record-type")).Send()
+		r, err = rdr.Read()
+
+		dv := r.Get("record-type-not-exist", reader.WithDefaultValue("NOT-EXISTENT"))
+		require.EqualValues(t, dv, "NOT-EXISTENT")
+
+		if r.Get("record-type") == "RH" {
+			mv := r.Get("record-type",
+				reader.WithValueMappings([]reader.KeyValue{{Key: "RH", Value: "mapped-record-type"}, {Key: reader.GetPropertyOtherwiseMappingKey, Value: "otherwise-mapping-key"}}))
+			if r.Get("record-type") == "RH" {
+				require.EqualValues(t, "mapped-record-type", mv, fmt.Sprintf("%s", r.Get("record-type")))
+			} else {
+				require.EqualValues(t, "otherwise-mapping-key", mv, fmt.Sprintf("%s", r.Get("record-type")))
+			}
+		}
 	}
 
 	if err != io.EOF {
 		t.Log(err)
 	}
 
-	reader.Close()
+	rdr.Close()
 }

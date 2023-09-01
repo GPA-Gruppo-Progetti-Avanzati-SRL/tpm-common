@@ -45,18 +45,68 @@ func (r *Record) String() string {
 	return sb.String()
 }
 
-func (r *Record) Get(n string, defVal string) string {
-	v, _ := r.GetWithIndicator(n, defVal)
+/*
+ * Get property methods. A number of variants with the ability to provide a default-value and a simple value mapping.
+ */
+
+// KeyValue basic type to support mapping of property values
+type KeyValue struct {
+	Key   string
+	Value string
+}
+
+const (
+	GetPropertyOtherwiseMappingKey = "--otherwise--"
+)
+
+type GerPropertyOptions struct {
+	defaultValue  string
+	valueMappings []KeyValue
+}
+
+type GetPropertyOption func(opts *GerPropertyOptions)
+
+func WithDefaultValue(v string) GetPropertyOption {
+	return func(opts *GerPropertyOptions) {
+		opts.defaultValue = v
+	}
+}
+
+func WithValueMappings(m []KeyValue) GetPropertyOption {
+	return func(opts *GerPropertyOptions) {
+		opts.valueMappings = m
+	}
+}
+
+func (r *Record) Get(n string, opts ...GetPropertyOption) string {
+	v, _ := r.GetWithIndicator(n, opts...)
 	return v
 }
 
-func (r *Record) GetWithIndicator(n string, defVal string) (string, bool) {
-	v, ok := r.fieldMap[n]
-	if !ok {
-		return defVal, ok
+func (r *Record) GetWithIndicator(n string, opts ...GetPropertyOption) (string, bool) {
+	options := GerPropertyOptions{}
+	for _, o := range opts {
+		o(&options)
 	}
 
-	return r.Fields[v], ok
+	v := options.defaultValue
+	mappingNdx, ok := r.fieldMap[n]
+	if ok {
+		v = r.Fields[mappingNdx]
+	}
+
+	// The mapping gets into way only in case of resolved values... doesn't get into way for the default value that should be a value already mapped.
+	if ok && len(options.valueMappings) > 0 {
+		for _, kv := range options.valueMappings {
+			kvKey := strings.ToLower(kv.Key)
+			if kvKey == GetPropertyOtherwiseMappingKey || strings.ToLower(v) == kvKey {
+				v = kv.Value
+				break
+			}
+		}
+	}
+
+	return v, ok
 }
 
 func (pr *Record) parse(l []byte, definition fixedlengthfile.FixedLengthRecordDefinition) error {
