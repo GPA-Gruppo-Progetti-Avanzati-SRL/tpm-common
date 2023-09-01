@@ -60,11 +60,18 @@ const (
 )
 
 type GerPropertyOptions struct {
-	defaultValue  string
-	valueMappings []KeyValue
+	defaultValue        string
+	defaultValueOnEmpty bool
+	valueMappings       []KeyValue
 }
 
 type GetPropertyOption func(opts *GerPropertyOptions)
+
+func WithDefaultValueOnEmpty(b bool) GetPropertyOption {
+	return func(opts *GerPropertyOptions) {
+		opts.defaultValueOnEmpty = b
+	}
+}
 
 func WithDefaultValue(v string) GetPropertyOption {
 	return func(opts *GerPropertyOptions) {
@@ -84,7 +91,7 @@ func (r *Record) Get(n string, opts ...GetPropertyOption) string {
 }
 
 func (r *Record) GetWithIndicator(n string, opts ...GetPropertyOption) (string, bool) {
-	options := GerPropertyOptions{}
+	options := GerPropertyOptions{defaultValueOnEmpty: true}
 	for _, o := range opts {
 		o(&options)
 	}
@@ -92,7 +99,10 @@ func (r *Record) GetWithIndicator(n string, opts ...GetPropertyOption) (string, 
 	v := options.defaultValue
 	mappingNdx, ok := r.fieldMap[n]
 	if ok {
-		v = r.Fields[mappingNdx]
+		v := r.Fields[mappingNdx]
+		if v == "" && options.defaultValueOnEmpty {
+			v = options.defaultValue
+		}
 	}
 
 	// The mapping gets into way only in case of resolved values... doesn't get into way for the default value that should be a value already mapped.
