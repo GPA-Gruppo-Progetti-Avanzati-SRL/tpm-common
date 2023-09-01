@@ -99,7 +99,7 @@ func (r *Record) GetWithIndicator(n string, opts ...GetPropertyOption) (string, 
 	v := options.defaultValue
 	mappingNdx, ok := r.fieldMap[n]
 	if ok {
-		v := r.Fields[mappingNdx]
+		v = r.Fields[mappingNdx]
 		if v == "" && options.defaultValueOnEmpty {
 			v = options.defaultValue
 		}
