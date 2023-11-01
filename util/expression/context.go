@@ -230,14 +230,24 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	}
 
 	var err error
-	v, isExpr := IsExpression(v)
-	if isExpr {
-		v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
-		if err != nil {
-			log.Error().Err(err).Str("expr", v).Msg(semLogContext)
-			return false, err
-		}
+
+	// Current formulation seems to be wrong.... variables are resolved only if it's an expression...
+	// if isExpr {
+	v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	if err != nil {
+		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
+		return false, err
 	}
+	//}
+
+	/* Need to risk the evaluation anyway.... the expression check might fail to recognize expression such as 'true' or 'false'
+	v, isExpr := IsExpression(v)
+	if !isExpr {
+		err := fmt.Errorf("expression %s seems not to be evaluable", v)
+		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
+		return false, err
+	}
+	*/
 
 	exprValue, err := gval.Evaluate(v, pvr)
 	if err != nil {
@@ -315,8 +325,10 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 	}
 
 	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return ""
+		if !isJsonPathUnknownKey(err) {
+			log.Error().Err(err).Msg(semLogContext)
+			return ""
+		}
 	}
 
 	s, err = variable.ToString(varValue, doEscape)
@@ -325,6 +337,14 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 	}
 
 	return s
+}
+
+func isJsonPathUnknownKey(err error) bool {
+	if err != nil {
+		return strings.HasPrefix(err.Error(), "unknown key")
+	}
+
+	return false
 }
 
 func (pvr *Context) jsonEscape(s string, doEscape bool) string {

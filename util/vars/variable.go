@@ -12,18 +12,19 @@ import (
 )
 
 const (
-	ReferenceSelf                      = "[var-reference]"
+	ReferenceSelf                      = "[variable-ref]"
 	KeepReferenceOnNotFoundOptionValue = "keep-ref"
 )
 
 type VariableOpts struct {
-	Rotate       bool
-	Quoted       bool
-	FormatType   string
-	Format       string
-	MaxLength    int
-	PadChar      string
-	DefaultValue interface{}
+	Rotate                   bool
+	Quoted                   bool
+	FormatType               string
+	Format                   string
+	MaxLength                int
+	PadChar                  string
+	DefaultValue             interface{}
+	KeepVariableReferenceONF bool
 }
 
 type Variable struct {
@@ -47,6 +48,9 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool) (string, error) {
 
 	opts := vr.getOpts(v)
 	if v == nil {
+		if opts.KeepVariableReferenceONF {
+			return ReferenceSelf, nil
+		}
 		v = opts.DefaultValue
 	}
 
@@ -100,13 +104,14 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 	const semLogContext = "variable-name::get-opts"
 
 	opts := VariableOpts{
-		Rotate:       false,
-		Quoted:       false,
-		FormatType:   "",
-		Format:       "",
-		MaxLength:    0,
-		PadChar:      "",
-		DefaultValue: "",
+		Rotate:                   false,
+		Quoted:                   false,
+		FormatType:               "",
+		Format:                   "",
+		MaxLength:                0,
+		PadChar:                  "",
+		DefaultValue:             "",
+		KeepVariableReferenceONF: false,
 	}
 
 	for i := 0; i < len(vr.tags); i++ {
@@ -150,7 +155,7 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 					case "now":
 						opts.DefaultValue = time.Now()
 					case KeepReferenceOnNotFoundOptionValue:
-						opts.DefaultValue = ReferenceSelf
+						opts.KeepVariableReferenceONF = true
 					default:
 						opts.DefaultValue = fmt.Sprint(v)
 					}

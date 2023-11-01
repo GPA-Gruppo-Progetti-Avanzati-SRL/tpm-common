@@ -66,6 +66,10 @@ func TestContextEvaluation(t *testing.T) {
 			expr:     `!e:{v:var01,len=10,pad=.}`,
 			expected: "OK........",
 		},
+		{
+			expr:     `!e:{$.missing.props,len=-10,pad=0,onf=keep-ref}`,
+			expected: "{$.missing.props,len=-10,pad=0,onf=keep-ref}",
+		},
 	}
 
 	exprCtx, err := expression.NewContext(expression.WithJsonInput(j), expression.WithVars(map[string]interface{}{"var01": "OK"}))
@@ -86,6 +90,11 @@ func TestContextBoolEvaluation(t *testing.T) {
 		expected bool
 		mode     expression.EvaluationMode
 	}{
+		{
+			rules:    []string{`"{$.propNotPresent}" == "OK"`},
+			expected: false,
+			mode:     expression.AllMustMatch,
+		},
 		{
 			rules:    []string{`"{$.beneficiario.natura}" == "DT"`, `"{$.beneficiario.numero}" == "8188602"`},
 			expected: true,
