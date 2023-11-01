@@ -13,28 +13,39 @@ import (
 
 const (
 	ReferenceSelf                      = "[variable-ref]"
+	OnNotFoundTag                      = "onf"
 	KeepReferenceOnNotFoundOptionValue = "keep-ref"
+	OnNotFoundKeepVariableOption       = OnNotFoundTag + "=" + KeepReferenceOnNotFoundOptionValue
 )
 
 type VariableOpts struct {
-	Rotate                   bool
-	Quoted                   bool
-	FormatType               string
-	Format                   string
-	MaxLength                int
-	PadChar                  string
-	DefaultValue             interface{}
-	KeepVariableReferenceONF bool
+	Rotate       bool
+	Quoted       bool
+	FormatType   string
+	Format       string
+	MaxLength    int
+	PadChar      string
+	DefaultValue interface{}
 }
 
 type Variable struct {
-	Name string
-	tags []string
+	Name                            string
+	OnNotFoundKeepVariableReference bool
+	tags                            []string
 }
 
 func ParseVariable(n string) (Variable, error) {
 	tags := strings.Split(n, ",")
-	v := Variable{Name: tags[0], tags: tags[1:]}
+	v := Variable{Name: tags[0]}
+
+	for _, t := range tags[1:] {
+		if t == OnNotFoundKeepVariableOption {
+			v.OnNotFoundKeepVariableReference = true
+		} else {
+			v.tags = append(v.tags, t)
+		}
+	}
+
 	return v, nil
 }
 
@@ -48,9 +59,6 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool) (string, error) {
 
 	opts := vr.getOpts(v)
 	if v == nil {
-		if opts.KeepVariableReferenceONF {
-			return ReferenceSelf, nil
-		}
 		v = opts.DefaultValue
 	}
 
@@ -104,14 +112,13 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 	const semLogContext = "variable-name::get-opts"
 
 	opts := VariableOpts{
-		Rotate:                   false,
-		Quoted:                   false,
-		FormatType:               "",
-		Format:                   "",
-		MaxLength:                0,
-		PadChar:                  "",
-		DefaultValue:             "",
-		KeepVariableReferenceONF: false,
+		Rotate:       false,
+		Quoted:       false,
+		FormatType:   "",
+		Format:       "",
+		MaxLength:    0,
+		PadChar:      "",
+		DefaultValue: "",
 	}
 
 	for i := 0; i < len(vr.tags); i++ {
@@ -155,7 +162,8 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 					case "now":
 						opts.DefaultValue = time.Now()
 					case KeepReferenceOnNotFoundOptionValue:
-						opts.KeepVariableReferenceONF = true
+						// handled in advance.
+						// opts.KeepVariableReferenceONF = true
 					default:
 						opts.DefaultValue = fmt.Sprint(v)
 					}

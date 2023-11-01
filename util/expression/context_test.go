@@ -68,7 +68,7 @@ func TestContextEvaluation(t *testing.T) {
 		},
 		{
 			expr:     `!e:{$.missing.props,len=-10,pad=0,onf=keep-ref}`,
-			expected: "{$.missing.props,len=-10,pad=0,onf=keep-ref}",
+			expected: "!e:{$.missing.props,len=-10,pad=0}", // the onf=keep-ref tag gets deleted when evaluated first time
 		},
 	}
 

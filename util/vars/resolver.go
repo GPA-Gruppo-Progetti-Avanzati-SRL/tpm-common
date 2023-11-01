@@ -15,6 +15,31 @@ type VariableReference struct {
 
 type VariableReferenceType string
 
+func (vrt VariableReferenceType) ToVar(n string) string {
+
+	var sb strings.Builder
+	switch vrt {
+	case PercentVariableReference:
+		sb.WriteString(PercentVariableReferencePrefix)
+		sb.WriteString(n)
+		sb.WriteString(PercentVariableReferenceSuffix)
+	case DashVariableReference:
+		sb.WriteString(DashVariableReferencePrefix)
+		sb.WriteString(n)
+		sb.WriteString(DashVariableReferenceSuffix)
+	case DollarVariableReference:
+		sb.WriteString(DollarVariableReferencePrefix)
+		sb.WriteString(n)
+		sb.WriteString(DollarVariableReferenceSuffix)
+	case SimpleVariableReference:
+		sb.WriteString(SimpleVariableReferencePrefix)
+		sb.WriteString(n)
+		sb.WriteString(SimpleVariableReferenceSuffix)
+	}
+
+	return sb.String()
+}
+
 const (
 	AnyVariableReference  VariableReferenceType = "any"
 	nullVariableReference VariableReferenceType = "null"
@@ -95,7 +120,7 @@ func FindVariableReferences(s string, ofType VariableReferenceType) ([]VariableR
 	return resp, nil
 }
 
-type VariableResolverFunc func(current string, s string) string
+type VariableResolverFunc func(current string, s string) (string, bool)
 
 func ResolveVariables(s string, ofType VariableReferenceType, aResolver VariableResolverFunc, trimResult bool) (string, bool, error) {
 
@@ -110,21 +135,22 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 
 	partial := false
 	for _, v := range vars {
-		resolved := aResolver(s, v.VarName)
-		if resolved != ReferenceSelf {
-			s = strings.ReplaceAll(s, v.Match, resolved)
-		} else {
+		resolved, ok := aResolver(s, v.VarName)
+		if !ok {
 			partial = true
+			s = strings.ReplaceAll(s, v.Match, v.RefType.ToVar(resolved))
+		} else {
+			s = strings.ReplaceAll(s, v.Match, resolved)
 		}
 	}
 
 	return strings.TrimSpace(s), !partial, nil
 }
 
-func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) func(a, s string) string {
+func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) func(a, s string) (string, bool) {
 
 	const semLogContext = "common-util-vars::simple-map-resolver"
-	return func(a, s string) string {
+	return func(a, s string) (string, bool) {
 
 		varReference, _ := ParseVariable(s)
 
@@ -138,9 +164,11 @@ func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) fun
 			if f, ok := v.(func(a, s string) string); ok {
 				v = f(a, s)
 			}
+		} else if v == nil && varReference.OnNotFoundKeepVariableReference {
+			return varReference.Raw(), false
 		}
 
 		res, _ := varReference.ToString(v, false)
-		return res
+		return res, true
 	}
 }

@@ -165,8 +165,9 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 		return "", err
 	}
 
+	isExpr := false
 	if fullResolution {
-		v, isExpr := IsExpression(v)
+		v, isExpr = IsExpression(v)
 		if isExpr {
 			return gval.Evaluate(v, pvr)
 		}
@@ -276,7 +277,7 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 
 var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:"}
 
-func (pvr *Context) resolveVar(_ string, s string) string {
+func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 
 	const semLogContext = "expr-context::resolve-var"
 
@@ -291,7 +292,7 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 
 	pfix, err := pvr.getPrefix(variable.Name)
 	if err != nil {
-		return ""
+		return "", true
 	}
 
 	var varValue interface{}
@@ -337,8 +338,12 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 	if err != nil {
 		if !isJsonPathUnknownKey(err) {
 			log.Error().Err(err).Msg(semLogContext)
-			return ""
+			return "", true
 		}
+	}
+
+	if varValue == nil && variable.OnNotFoundKeepVariableReference {
+		return variable.Raw(), false
 	}
 
 	s, err = variable.ToString(varValue, doEscape)
@@ -346,7 +351,7 @@ func (pvr *Context) resolveVar(_ string, s string) string {
 		log.Error().Err(err).Msg(semLogContext)
 	}
 
-	return s
+	return s, true
 }
 
 func isJsonPathUnknownKey(err error) bool {

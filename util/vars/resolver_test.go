@@ -45,7 +45,7 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		s1, fullResolution, err := vars.ResolveVariables(s, vars.DollarVariableReference, func(a, s string) string { return s }, false)
+		s1, fullResolution, err := vars.ResolveVariables(s, vars.DollarVariableReference, func(a, s string) (string, bool) { return s, true }, false)
 		require.NoError(t, err)
 		t.Logf("string %s fully(%t) resolved to %s", s, fullResolution, s1)
 	}
