@@ -159,15 +159,17 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 	}
 
 	var err error
-
-	v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	var fullResolution bool
+	v, fullResolution, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 	if err != nil {
 		return "", err
 	}
 
-	v, isExpr := IsExpression(v)
-	if isExpr {
-		return gval.Evaluate(v, pvr)
+	if fullResolution {
+		v, isExpr := IsExpression(v)
+		if isExpr {
+			return gval.Evaluate(v, pvr)
+		}
 	}
 
 	return v, nil
@@ -230,14 +232,22 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	}
 
 	var err error
+	var fullResolution bool
 
 	// Current formulation seems to be wrong.... variables are resolved only if it's an expression...
 	// if isExpr {
-	v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	v, fullResolution, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 	if err != nil {
 		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 		return false, err
 	}
+
+	if !fullResolution {
+		err = fmt.Errorf("expression not fully resolved: %s", v)
+		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
+		return false, err
+	}
+
 	//}
 
 	/* Need to risk the evaluation anyway.... the expression check might fail to recognize expression such as 'true' or 'false'
