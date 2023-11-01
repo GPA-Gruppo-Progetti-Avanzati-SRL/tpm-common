@@ -52,6 +52,8 @@ func TestResolveVariableReferences(t *testing.T) {
 
 	sarr = []string{
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
+		"${not-present,onf=now,20060102}",
+		fmt.Sprintf("${not-present,onf=%s} - ${ctx-id}", vars.KeepReferenceOnNotFoundOptionValue),
 	}
 
 	m := map[string]interface{}{
@@ -65,7 +67,7 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		s1, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m, "ND"), false)
+		s1, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
 		require.NoError(t, err)
 		t.Logf("string %s resolved to %s", s, s1)
 	}

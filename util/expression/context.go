@@ -165,7 +165,7 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 		return "", err
 	}
 
-	isExpr := IsExpression(v)
+	v, isExpr := IsExpression(v)
 	if isExpr {
 		return gval.Evaluate(v, pvr)
 	}
@@ -230,7 +230,7 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	}
 
 	var err error
-	isExpr := IsExpression(v)
+	v, isExpr := IsExpression(v)
 	if isExpr {
 		v, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 		if err != nil {
@@ -258,51 +258,73 @@ var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:"}
 
 func (pvr *Context) resolveVar(_ string, s string) string {
 
+	const semLogContext = "expr-context::resolve-var"
+
+	var err error
 	doEscape := false
 	if strings.HasPrefix(s, "!") {
 		doEscape = true
 		s = strings.TrimPrefix(s, "!")
 	}
 
-	pfix, err := pvr.getPrefix(s)
+	variable, _ := varResolver.ParseVariable(s)
+
+	pfix, err := pvr.getPrefix(variable.Name)
 	if err != nil {
 		return ""
 	}
+
+	var varValue interface{}
 
 	switch pfix {
 	case "$[":
 		fallthrough
 	case "$.":
-		var v interface{}
-		v, err = jsonpath.Get(s, pvr.input)
+
+		varValue, err = jsonpath.Get(variable.Name, pvr.input)
 		// log.Trace().Str("path-name", s).Interface("value", v).Msg("evaluation of var")
-		if err == nil {
-			s, err = pvr.resolveJsonPathExpr(v)
+		/*
 			if err == nil {
-				return pvr.jsonEscape(s, doEscape)
+				s, err = pvr.jsonPathValueToString(varValue)
+				if err == nil {
+					return pvr.jsonEscape(s, doEscape)
+				}
 			}
-		}
+		*/
 
 	case "h:":
-		s = pvr.headers.GetFirst(s[2:]).Value
-		return pvr.jsonEscape(s, doEscape)
+		varValue = pvr.headers.GetFirst(variable.Name[2:]).Value
+		// return pvr.jsonEscape(s, doEscape)
 
 	case "v:":
-		v, ok := pvr.vars[s[2:]]
-		if ok {
-			s = fmt.Sprintf("%v", v)
-			return pvr.jsonEscape(s, doEscape)
-		}
+		varValue, _ = pvr.vars[variable.Name[2:]]
+		/*
+			if ok {
+				s = fmt.Sprintf("%v", varValue)
+				return pvr.jsonEscape(s, doEscape)
+			}
+		*/
 
 	default:
-		v, ok := os.LookupEnv(s)
-		if ok {
-			return pvr.jsonEscape(v, doEscape)
-		}
+		varValue, _ = os.LookupEnv(s)
+		/*
+			if ok {
+				return pvr.jsonEscape(varValue.(string), doEscape)
+			}
+		*/
 	}
 
-	log.Info().Str("var-name", s).Msg("could not resolve variable")
-	return ""
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return ""
+	}
+
+	s, err = variable.ToString(varValue, doEscape)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+
+	return s
 }
 
 func (pvr *Context) jsonEscape(s string, doEscape bool) string {
@@ -312,7 +334,7 @@ func (pvr *Context) jsonEscape(s string, doEscape bool) string {
 	return s
 }
 
-func (pvr *Context) resolveJsonPathExpr(v interface{}) (string, error) {
+func (pvr *Context) jsonPathValueToString(v interface{}) (string, error) {
 
 	var s string
 	var err error

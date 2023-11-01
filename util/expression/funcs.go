@@ -25,18 +25,26 @@ var expressionSmell = []string{
 // didn't parse the thing but try to find if there is any 'reserved' word in there.
 // example: 'hello' is not an expression, '"hello"' is an expression which evaluates to 'hello'. This trick is to avoid something like
 // value: '"{$.operazione.commissione}"' in the yamls. Someday I'll get to there.... sure...
-func IsExpression(e string) bool {
+func IsExpression(e string) (string, bool) {
 	if e == "" {
-		return false
+		return e, false
+	}
+
+	if strings.HasPrefix(e, "e:") {
+		return strings.TrimPrefix(e, "e:"), true
+	}
+
+	if strings.HasPrefix(e, "!e:") {
+		return strings.TrimPrefix(e, "!e:"), false
 	}
 
 	for _, s := range expressionSmell {
 		if strings.Contains(e, s) {
-			return true
+			return e, true
 		}
 	}
 
-	return false
+	return e, false
 }
 
 func IsDefined(variable interface{}) bool {

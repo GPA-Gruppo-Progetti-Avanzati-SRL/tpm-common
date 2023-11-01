@@ -50,6 +50,22 @@ func TestContextEvaluation(t *testing.T) {
 			expr:     `{$.beneficiario.numero}`,
 			expected: "8188602",
 		},
+		{
+			expr:     `{$.beneficiario.numero,len=10,pad=0}`,
+			expected: "8188602000",
+		},
+		{
+			expr:     `{$.beneficiario.numero,len=-10,pad=0}`,
+			expected: "0008188602",
+		},
+		{
+			expr:     `{v:var01,len=10,pad=.}`,
+			expected: "OK........",
+		},
+		{
+			expr:     `!e:{v:var01,len=10,pad=.}`,
+			expected: "OK........",
+		},
 	}
 
 	exprCtx, err := expression.NewContext(expression.WithJsonInput(j), expression.WithVars(map[string]interface{}{"var01": "OK"}))
@@ -82,6 +98,11 @@ func TestContextBoolEvaluation(t *testing.T) {
 		},
 		{
 			rules:    []string{`"{v:var01}" == "OK"`, `"{$.beneficiario.numero}" == "8188602-NO"`},
+			expected: false,
+			mode:     expression.AllMustMatch,
+		},
+		{
+			rules:    []string{`"{v:varNotPresent}" == "OK"`},
 			expected: false,
 			mode:     expression.AllMustMatch,
 		},

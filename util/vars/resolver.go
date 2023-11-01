@@ -2,13 +2,9 @@ package varResolver
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/mangling"
 	"github.com/rs/zerolog/log"
 	"regexp"
-	"strconv"
 	"strings"
-	"time"
 )
 
 type VariableReference struct {
@@ -113,124 +109,35 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 	}
 
 	for _, v := range vars {
-		s = strings.ReplaceAll(s, v.Match, aResolver(s, v.VarName))
+		resolved := aResolver(s, v.VarName)
+		if resolved != ReferenceSelf {
+			s = strings.ReplaceAll(s, v.Match, resolved)
+		}
 	}
 
 	return strings.TrimSpace(s), nil
 }
 
-type formatOpts struct {
-	rotate     bool
-	quoted     bool
-	formatType string
-	format     string
-	maxLength  int
-	padChar    string
-}
-
-func SimpleMapResolver(m map[string]interface{}, onVarNotFound string) func(a, s string) string {
+func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) func(a, s string) string {
 
 	const semLogContext = "common-util-vars::simple-map-resolver"
 	return func(a, s string) string {
 
-		tags := strings.Split(s, ",")
+		varReference, _ := ParseVariable(s)
+
 		var v interface{}
 		var ok bool
-		if v, ok = m[tags[0]]; !ok {
-			v = onVarNotFound
+		if v, ok = m[varReference.Name]; !ok {
+			log.Info().Msgf(semLogContext+" variable %s not found", varReference.Name)
 		}
 
-		if f, ok := v.(func(a, s string) string); ok {
-			v = f(a, s)
+		if v != nil {
+			if f, ok := v.(func(a, s string) string); ok {
+				v = f(a, s)
+			}
 		}
 
-		opts := resolveFormatOptions(v, tags)
-
-		var res string
-		switch opts.formatType {
-		case "time-layout":
-			res = v.(time.Time).Format(opts.format)
-		case "sprintf":
-			res = fmt.Sprintf(opts.format, v)
-		default:
-			res = fmt.Sprint(v)
-		}
-
-		if opts.rotate {
-			res = mangling.AlphabetRot(res, true)
-		}
-
-		if opts.padChar != "" {
-			res, _ = util.Pad2Length(res, opts.maxLength, opts.padChar)
-		}
-
-		if opts.maxLength != 0 {
-			res, _ = util.ToMaxLength(res, opts.maxLength)
-		}
-
-		if opts.quoted {
-			res = fmt.Sprintf("\"%s\"", res)
-		}
-
+		res, _ := varReference.ToString(v, false)
 		return res
 	}
-}
-
-func resolveFormatOptions(v interface{}, tags []string) formatOpts {
-
-	const semLogContext = "common-util-vars::simple-map-resolver"
-	var ok bool
-
-	opts := formatOpts{
-		rotate:     false,
-		quoted:     false,
-		formatType: "sprint",
-		format:     "",
-		maxLength:  0,
-		padChar:    "",
-	}
-
-	for i := 1; i < len(tags); i++ {
-		switch tags[i] {
-		case "rotate":
-			opts.rotate = true
-		case "quoted":
-			opts.quoted = true
-		case "pad":
-			opts.padChar = "0"
-		default:
-			resolved := false
-			if strings.HasPrefix(tags[i], "len=") {
-				resolved = true
-				v, err := strconv.Atoi(strings.TrimPrefix(tags[i], "len="))
-				if err != nil {
-					log.Error().Err(err).Msg(semLogContext + " invalid variable tag")
-				} else {
-					opts.maxLength = v
-				}
-			}
-
-			if !resolved && strings.HasPrefix(tags[i], "pad=") {
-				resolved = true
-				v := strings.TrimPrefix(tags[i], "pad=")
-				if len(v) > 0 {
-					opts.padChar = v[0:1]
-				} else {
-					log.Warn().Msg(semLogContext + " no pad char provided")
-				}
-			}
-
-			if !resolved {
-				if _, ok = v.(time.Time); ok {
-					opts.format = tags[i]
-					opts.formatType = "time-layout"
-				} else {
-					opts.format = "%" + tags[i]
-					opts.formatType = "sprintf"
-				}
-			}
-		}
-	}
-
-	return opts
 }
