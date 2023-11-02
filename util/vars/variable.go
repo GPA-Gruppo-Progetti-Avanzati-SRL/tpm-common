@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	ReferenceSelf                      = "[variable-ref]"
-	OnNotFoundTag                      = "onf"
-	KeepReferenceOnNotFoundOptionValue = "keep-ref"
-	OnNotFoundKeepVariableOption       = OnNotFoundTag + "=" + KeepReferenceOnNotFoundOptionValue
+	// ReferenceSelf = "[variable-ref]"
+	// OnNotFoundTag                      = "onf"
+	// KeepReferenceOnNotFoundOptionValue = "keep-ref"
+	// OnNotFoundKeepVariableOption = OnNotFoundTag + "=" + KeepReferenceOnNotFoundOptionValue
+	DeferOption = "defer"
 )
 
 type VariableOpts struct {
@@ -29,9 +30,9 @@ type VariableOpts struct {
 }
 
 type Variable struct {
-	Name                            string
-	OnNotFoundKeepVariableReference bool
-	tags                            []string
+	Name     string
+	Deferred bool
+	tags     []string
 }
 
 func ParseVariable(n string) (Variable, error) {
@@ -39,8 +40,8 @@ func ParseVariable(n string) (Variable, error) {
 	v := Variable{Name: tags[0]}
 
 	for _, t := range tags[1:] {
-		if t == OnNotFoundKeepVariableOption {
-			v.OnNotFoundKeepVariableReference = true
+		if t == DeferOption {
+			v.Deferred = true
 		} else {
 			v.tags = append(v.tags, t)
 		}
@@ -161,7 +162,7 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 					switch v {
 					case "now":
 						opts.DefaultValue = time.Now()
-					case KeepReferenceOnNotFoundOptionValue:
+					case DeferOption:
 						// handled in advance.
 						// opts.KeepVariableReferenceONF = true
 					default:

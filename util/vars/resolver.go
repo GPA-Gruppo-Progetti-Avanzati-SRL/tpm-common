@@ -133,18 +133,18 @@ func ResolveVariables(s string, ofType VariableReferenceType, aResolver Variable
 		return s, false, err
 	}
 
-	partial := false
+	rcDeferred := false
 	for _, v := range vars {
-		resolved, ok := aResolver(s, v.VarName)
-		if !ok {
-			partial = true
+		resolved, deferred := aResolver(s, v.VarName)
+		if deferred {
 			s = strings.ReplaceAll(s, v.Match, v.RefType.ToVar(resolved))
+			rcDeferred = true
 		} else {
 			s = strings.ReplaceAll(s, v.Match, resolved)
 		}
 	}
 
-	return strings.TrimSpace(s), !partial, nil
+	return strings.TrimSpace(s), rcDeferred, nil
 }
 
 func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) func(a, s string) (string, bool) {
@@ -153,6 +153,9 @@ func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) fun
 	return func(a, s string) (string, bool) {
 
 		varReference, _ := ParseVariable(s)
+		if varReference.Deferred {
+			return varReference.Raw(), varReference.Deferred
+		}
 
 		var v interface{}
 		var ok bool
@@ -164,11 +167,9 @@ func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) fun
 			if f, ok := v.(func(a, s string) string); ok {
 				v = f(a, s)
 			}
-		} else if v == nil && varReference.OnNotFoundKeepVariableReference {
-			return varReference.Raw(), false
 		}
 
 		res, _ := varReference.ToString(v, false)
-		return res, true
+		return res, varReference.Deferred
 	}
 }

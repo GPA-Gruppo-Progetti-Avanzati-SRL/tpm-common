@@ -45,15 +45,15 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		s1, fullResolution, err := vars.ResolveVariables(s, vars.DollarVariableReference, func(a, s string) (string, bool) { return s, true }, false)
+		s1, deferred, err := vars.ResolveVariables(s, vars.DollarVariableReference, func(a, s string) (string, bool) { return s, true }, false)
 		require.NoError(t, err)
-		t.Logf("string %s fully(%t) resolved to %s", s, fullResolution, s1)
+		t.Logf("string %s deferred(%t) resolved to %s", s, deferred, s1)
 	}
 
 	sarr = []string{
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 		"${not-present,onf=now,20060102}",
-		fmt.Sprintf("${not-present,onf=%s} - ${ctx-id}", vars.KeepReferenceOnNotFoundOptionValue),
+		fmt.Sprintf("${not-present,%s} - ${ctx-id}", vars.DeferOption),
 	}
 
 	m := map[string]interface{}{
@@ -67,8 +67,8 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		s1, fullResolution, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
+		s1, deferred, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
 		require.NoError(t, err)
-		t.Logf("string %s fully(%t) resolved to %s", s, fullResolution, s1)
+		t.Logf("string %s deferred(%t) resolved to %s", s, deferred, s1)
 	}
 }

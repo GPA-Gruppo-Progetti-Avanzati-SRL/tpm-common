@@ -159,14 +159,14 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 	}
 
 	var err error
-	var fullResolution bool
-	v, fullResolution, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	var deferred bool
+	v, deferred, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 	if err != nil {
 		return "", err
 	}
 
 	isExpr := false
-	if fullResolution {
+	if !deferred {
 		v, isExpr = IsExpression(v)
 		if isExpr {
 			return gval.Evaluate(v, pvr)
@@ -233,18 +233,18 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	}
 
 	var err error
-	var fullResolution bool
+	var deferred bool
 
 	// Current formulation seems to be wrong.... variables are resolved only if it's an expression...
 	// if isExpr {
-	v, fullResolution, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
+	v, deferred, err = varResolver.ResolveVariables(v, varResolver.AnyVariableReference, pvr.resolveVar, true)
 	if err != nil {
 		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 		return false, err
 	}
 
-	if !fullResolution {
-		err = fmt.Errorf("expression not fully resolved: %s", v)
+	if deferred {
+		err = fmt.Errorf("expression deferred: %s", v)
 		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 		return false, err
 	}
@@ -289,10 +289,13 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 	}
 
 	variable, _ := varResolver.ParseVariable(s)
+	if variable.Deferred {
+		return variable.Raw(), variable.Deferred
+	}
 
 	pfix, err := pvr.getPrefix(variable.Name)
 	if err != nil {
-		return "", true
+		return "", variable.Deferred
 	}
 
 	var varValue interface{}
@@ -338,12 +341,8 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 	if err != nil {
 		if !isJsonPathUnknownKey(err) {
 			log.Error().Err(err).Msg(semLogContext)
-			return "", true
+			return "", variable.Deferred
 		}
-	}
-
-	if varValue == nil && variable.OnNotFoundKeepVariableReference {
-		return variable.Raw(), false
 	}
 
 	s, err = variable.ToString(varValue, doEscape)
@@ -351,7 +350,7 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 		log.Error().Err(err).Msg(semLogContext)
 	}
 
-	return s, true
+	return s, variable.Deferred
 }
 
 func isJsonPathUnknownKey(err error) bool {
