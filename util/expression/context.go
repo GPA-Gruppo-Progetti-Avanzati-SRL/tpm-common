@@ -293,7 +293,7 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 		return variable.Raw(), variable.Deferred
 	}
 
-	pfix, err := pvr.getPrefix(variable.Name)
+	pfix, err := pvr.validatePrefix(variable.Prefix)
 	if err != nil {
 		return "", variable.Deferred
 	}
@@ -301,9 +301,9 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 	var varValue interface{}
 
 	switch pfix {
-	case "$[":
+	case varResolver.VariablePrefixDollarSquareBracket:
 		fallthrough
-	case "$.":
+	case varResolver.VariablePrefixDollarDot:
 
 		varValue, err = jsonpath.Get(variable.Name, pvr.input)
 		// log.Trace().Str("path-name", s).Interface("value", v).Msg("evaluation of var")
@@ -316,12 +316,12 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 			}
 		*/
 
-	case "h:":
-		varValue = pvr.headers.GetFirst(variable.Name[2:]).Value
+	case varResolver.VariablePrefixHColon:
+		varValue = pvr.headers.GetFirst(variable.Name).Value
 		// return pvr.jsonEscape(s, doEscape)
 
-	case "v:":
-		varValue, _ = pvr.vars[variable.Name[2:]]
+	case varResolver.VariablePrefixVColon:
+		varValue, _ = pvr.vars[variable.Name]
 		/*
 			if ok {
 				s = fmt.Sprintf("%v", varValue)
@@ -330,7 +330,7 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 		*/
 
 	default:
-		varValue, _ = os.LookupEnv(s)
+		varValue, _ = os.LookupEnv(variable.Name)
 		/*
 			if ok {
 				return pvr.jsonEscape(varValue.(string), doEscape)
@@ -395,43 +395,39 @@ func (pvr *Context) jsonPathValueToString(v interface{}) (string, error) {
 	return s, err
 }
 
-func (pvr *Context) getPrefix(s string) (string, error) {
+func (pvr *Context) validatePrefix(pfix varResolver.VariablePrefix) (varResolver.VariablePrefix, error) {
 
-	matchedPrefix := "env"
-
-	for _, pfix := range resolverTypePrefix {
-		if strings.HasPrefix(s, pfix) {
-			matchedPrefix = pfix
-			break
-		}
+	if pfix == varResolver.VariablePrefixNotSpecified {
+		pfix = varResolver.VariablePrefixEnv
 	}
 
 	isValid := false
-	switch matchedPrefix {
-	case "$[":
+	switch pfix {
+	case varResolver.VariablePrefixDollarSquareBracket:
 		fallthrough
-	case "$.":
+
+	case varResolver.VariablePrefixDollarDot:
 		if pvr.input != nil {
 			isValid = true
 		}
 
-	case "v:":
+	case varResolver.VariablePrefixVColon:
 		if pvr.vars != nil {
 			isValid = true
 		}
 
-	case "h:":
+	case varResolver.VariablePrefixHColon:
 		if pvr.headers != nil {
 			isValid = true
 		}
 
-	case "env":
+	case varResolver.VariablePrefixEnv:
 		isValid = true
 	}
 
 	if !isValid {
-		return matchedPrefix, fmt.Errorf("found prefix but resover doesn't have data for resolving")
+		return pfix, fmt.Errorf("found prefix but resover doesn't have data for resolving")
 	}
 
-	return matchedPrefix, nil
+	return pfix, nil
 }

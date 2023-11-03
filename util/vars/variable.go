@@ -30,6 +30,7 @@ type VariableOpts struct {
 }
 
 type Variable struct {
+	Prefix   VariablePrefix
 	Name     string
 	Deferred bool
 	tags     []string
@@ -37,7 +38,13 @@ type Variable struct {
 
 func ParseVariable(n string) (Variable, error) {
 	tags := strings.Split(n, ",")
-	v := Variable{Name: tags[0]}
+
+	nm := tags[0]
+	pfix := getPrefix(nm, VariablePrefixNotSpecified)
+	if pfix != VariablePrefixNotSpecified {
+		nm = strings.TrimPrefix(nm, string(pfix))
+	}
+	v := Variable{Name: nm, Prefix: pfix}
 
 	for _, t := range tags[1:] {
 		if t == DeferOption {
@@ -51,7 +58,12 @@ func ParseVariable(n string) (Variable, error) {
 }
 
 func (vr Variable) Raw() string {
-	s := []string{vr.Name}
+	var s []string
+	if vr.Prefix != VariablePrefixNotSpecified {
+		s = append(s, string(vr.Prefix)+vr.Name)
+	} else {
+		s = append(s, vr.Name)
+	}
 	s = append(s, vr.tags...)
 	return strings.Join(s, ",")
 }
@@ -106,6 +118,29 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool) (string, error) {
 	}
 
 	return res, nil
+}
+
+type VariablePrefix string
+
+const (
+	VariablePrefixNotSpecified        VariablePrefix = "not-present"
+	VariablePrefixEnv                 VariablePrefix = "env:"
+	VariablePrefixDollarDot           VariablePrefix = "$."
+	VariablePrefixVColon              VariablePrefix = "v:"
+	VariablePrefixHColon              VariablePrefix = "h:"
+	VariablePrefixDollarSquareBracket VariablePrefix = "$["
+)
+
+var knownPrefixes = []VariablePrefix{VariablePrefixEnv, VariablePrefixDollarDot, VariablePrefixVColon, VariablePrefixHColon, VariablePrefixDollarSquareBracket}
+
+func getPrefix(s string, defaultPrefix VariablePrefix) VariablePrefix {
+	for _, pfix := range knownPrefixes {
+		if strings.HasPrefix(s, string(pfix)) {
+			return pfix
+		}
+	}
+
+	return defaultPrefix
 }
 
 func (vr Variable) getOpts(value interface{}) VariableOpts {
