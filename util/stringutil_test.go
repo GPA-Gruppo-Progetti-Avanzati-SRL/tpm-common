@@ -5,6 +5,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 )
 
@@ -157,6 +158,7 @@ func TestStrings(t *testing.T) {
 		{input: "my favorite items", wanted: "myFavoriteItems"},
 		{input: "My Favorite Items", wanted: "myFavoriteItems"},
 		{input: "CONTO BANCOPOSTA RETAIL", wanted: "cONTOBANCOPOSTARETAIL"},
+		{input: "conto bancoposta retail", wanted: "contoBancopostaRetail"},
 		{input: "camt_029_001_09", wanted: "camt02900109"},
 		{input: "camt.029.001.09", wanted: "camt02900109"},
 	}
@@ -198,5 +200,68 @@ func TestStrings(t *testing.T) {
 		modS = util.Underscore(iw.input)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "underscore: strings should match")
+	}
+}
+
+func TestStrings2(t *testing.T) {
+
+	a := assert.New(t)
+
+	s := []InputWanted{
+		{input: "NUMERO GIORNI VALIDITA PRENOTAZIONE", wanted: "numeroGiorniValiditaPrenotazione"},
+		{input: "FLAG RISCOSSIONE SPESE EMISSIONE", wanted: "flagRiscossioneSpeseEmissione"},
+		{input: "NUMERO GIORNI STORNO EMISSIONE DIPENDENZA)", wanted: "numeroGiorniStornoEmissioneDipendenza)"},
+		{input: "NUMERO GIORNI STORNO EMISSIONE UFF CENTRALE", wanted: "numeroGiorniStornoEmissioneUffCentrale"},
+		{input: "FLAG RISCOSSIONE SPESE STAMPA", wanted: "flagRiscossioneSpeseStampa"},
+		{input: "NUMERO GIORNI PER PRELEVAMENTO INTERESSI", wanted: "numeroGiorniPerPrelevamentoInteressi"},
+		{input: "NUMERO GIORNI STORNO MOV CONTABILI DIPENDENZA", wanted: "numeroGiorniStornoMovContabiliDipendenza"},
+		{input: "NUMERO GIORNI STORNO MOV CONTABILI UFF CENTRALE", wanted: "numeroGiorniStornoMovContabiliUffCentrale"},
+		{input: "NUMERO GIORNI VALIDITA RICHIESTA AUTORIZZAZIONE", wanted: "numeroGiorniValiditaRichiestaAutorizzazione"},
+		{input: "NUMERO GIORNI VALIDITA AUTORIZZAZIONE", wanted: "numeroGiorniValiditaAutorizzazione"},
+		{input: "NUMERO ANNI PER PRESCRIZIONE CAPITALE", wanted: "numeroAnniPerPrescrizioneCapitale"},
+		{input: "NUMERO ANNI PER PRESCRIZIONE INTERESSI", wanted: "numeroAnniPerPrescrizioneInteressi"},
+		{input: "FLAG SEQUENZA CERTIFICATI", wanted: "flagSequenzaCertificati"},
+		{input: "FLAG CIRCOLARITA", wanted: "flagCircolarita"},
+		{input: "NUMERO GIORNI ARCHIVIAZIONE", wanted: "numeroGiorniArchiviazione"},
+		{input: "NUM GG ARCHIVIAZIONE MOV CONT", wanted: "numGgArchiviazioneMovCont"},
+		{input: "TIPO COLLEGAMENTO CON CONTI CORRENTI", wanted: "tipoCollegamentoConContiCorrenti"},
+		{input: "TIPO COLLEGAMENTO CON ANAGRAFE GENERALE", wanted: "tipoCollegamentoConAnagrafeGenerale"},
+		{input: "TIPO COLLEGAMENTO CON CONTABILITA GENERALE", wanted: "tipoCollegamentoConContabilitaGenerale"},
+		{input: "TIPO COLLEGAMENTO CON TITOLI", wanted: "tipoCollegamentoConTitoli"},
+		{input: "TIPO COLLEGAMENTO CON ESTERO", wanted: "tipoCollegamentoConEstero"},
+		{input: "FLAG COLLEGAMENTO TITOLI-ESTERO", wanted: "flagCollegamentoTitoliEstero"},
+		{input: "FLAG GESTIONE MODALITA DI REGOLAMENTO", wanted: "flagGestioneModalitaDiRegolamento"},
+		{input: "FLAG GESTIONE ANTIRICICLAGGIO", wanted: "flagGestioneAntiriciclaggio"},
+		{input: "SOGLIA 1 PER GESTIONE ANTIRICICLAGGIO", wanted: "soglia1PerGestioneAntiriciclaggio"},
+		{input: "SOGLIA 2 PER GESTIONE ANTIRICICLAGGIO", wanted: "soglia2PerGestioneAntiriciclaggio"},
+		{input: "IMPORTO DI SOGLIA NDG", wanted: "importoDiSogliaNdg"},
+		{input: "TABELLA SEQUENZA STAMPE", wanted: "tabellaSequenzaStampe"},
+		{input: "FLAG MEMORANDUM", wanted: "flagMemorandum"},
+		{input: "NUMERO MASSIMO CERTIFICATI", wanted: "numeroMassimoCertificati"},
+		{input: "FLAG DENSITA DI STAMPA", wanted: "flagDensitaDiStampa"},
+		{input: "FLAG SABATO FERIALE", wanted: "flagSabatoFeriale"},
+		{input: "NUMERO GIORNI PREAVVISO PER TITOLI", wanted: "numeroGiorniPreavvisoPerTitoli"},
+		{input: "NUMERO GIORNI PREAVVISO PER ESTERO", wanted: "numeroGiorniPreavvisoPerEstero"},
+		{input: "FLAG FINE VINCOLO FESTIVO", wanted: "flagFineVincoloFestivo"},
+		{input: "FLAG MODALITA CALCOLO GIORNO SCADENZA", wanted: "flagModalitaCalcoloGiornoScadenza"},
+		{input: "FLAG FORZATURA MODALITA REGOLAMENTO DA TITOLI", wanted: "flagForzaturaModalitaRegolamentoDaTitoli"},
+		{input: "FLAG EMISSIONE DIRETTA", wanted: "flagEmissioneDiretta"},
+		{input: "FLAG EMISSIONE DIFFERITA", wanted: "flagEmissioneDifferita"},
+		{input: "FLAG STAMPA", wanted: "flagStampa"},
+		{input: "CODICE DIPENDENZA GENERICA", wanted: "codiceDipendenzaGenerica"},
+		{input: "CODICE DIVISA LIRE", wanted: "codiceDivisaLire"},
+		{input: "CODICE DIVISA EURO", wanted: "codiceDivisaEuro"},
+		{input: "CODICE DIVISA RIFERIMENTO", wanted: "codiceDivisaRiferimento"},
+		{input: "DENOMINAZIONE SOCIALE", wanted: "denominazioneSociale"},
+		{input: "GIORNI RETRODATAZIONE MCT DIP", wanted: "giorniRetrodatazioneMctDip"},
+		{input: "CENSIMENTO NDG", wanted: "censimentoNdg"},
+		{input: "TIPO CALCOLO PERIODO", wanted: "tipoCalcoloPeriodo"},
+	}
+
+	for _, iw := range s {
+		modS := util.Camelize(strings.ToLower(iw.input))
+		//fmt.Printf("%s --> %s\n", iw.input, modS)
+		fmt.Printf("%s\n", modS)
+		a.Equal(iw.wanted, modS, "camelize: strings should match")
 	}
 }

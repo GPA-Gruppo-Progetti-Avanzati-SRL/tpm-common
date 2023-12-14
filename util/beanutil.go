@@ -35,8 +35,34 @@ func GetProperty(sourceMap map[string]interface{}, propName string) interface{} 
 		}
 	}
 
-	v, ok := m[propSegments[len(propSegments)-1]]
+	mustArray := false
+	leafPropRef := propSegments[len(propSegments)-1]
+	if strings.HasSuffix(leafPropRef, "[]") {
+		mustArray = true
+		leafPropRef = strings.TrimSuffix(leafPropRef, "[]")
+	}
+
+	v, ok := m[leafPropRef]
 	if ok {
+		switch tv := v.(type) {
+		case []string:
+			if mustArray {
+				v = tv[0]
+			} else {
+				v = nil
+			}
+		case []interface{}:
+			if mustArray {
+				v = tv[0]
+			} else {
+				v = nil
+			}
+		default:
+			if mustArray {
+				v = nil
+			}
+		}
+
 		return v
 		/*
 			switch typedValue := v.(type) {
