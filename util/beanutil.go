@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -10,7 +11,45 @@ import (
 const (
 	SemLogPropertyName        = "property-path"
 	SemLogPropertySegmentName = "segment-name"
+
+	ArrayItemNoneSpecifier  = -2
+	ArrayItemEmptySpecifier = -1
+	ArrayItemIndexSpecifier = 0
+	ArrayItemStarSpecifier  = -3
 )
+
+func beanUtilPropertyNameKind(n string) (string, int) {
+	if strings.HasSuffix(n, "[]") {
+		return strings.TrimSuffix(n, "[]"), ArrayItemEmptySpecifier
+	}
+
+	if strings.HasSuffix(n, "[*]") {
+		return strings.TrimSuffix(n, "[*]"), ArrayItemStarSpecifier
+	}
+
+	if strings.HasSuffix(n, "]") {
+		sarr := strings.Split(strings.TrimSuffix(n, "]"), "[")
+		switch len(sarr) {
+		case 1:
+			return sarr[0], ArrayItemEmptySpecifier
+		case 2:
+			i, err := strconv.Atoi(sarr[1])
+			if err != nil {
+				return sarr[0], ArrayItemEmptySpecifier
+			}
+
+			if i < 0 {
+				return sarr[0], ArrayItemEmptySpecifier
+			}
+
+			return sarr[0], i
+		default:
+			return sarr[0], ArrayItemEmptySpecifier
+		}
+	}
+
+	return n, ArrayItemNoneSpecifier
+}
 
 func GetProperty(sourceMap map[string]interface{}, propName string) interface{} {
 
@@ -19,14 +58,17 @@ func GetProperty(sourceMap map[string]interface{}, propName string) interface{} 
 	m := sourceMap
 	for i := 0; i < len(propSegments)-1; i++ {
 
-		mustArray := false
-		if strings.HasSuffix(propSegments[i], "[]") {
-			mustArray = true
-			propSegments[i] = strings.TrimSuffix(propSegments[i], "[]")
-		}
+		pn, pnKind := beanUtilPropertyNameKind(propSegments[i])
 
-		if v, ok := m[propSegments[i]]; ok {
-			m = cast2Map(propName, propSegments[i], v, mustArray)
+		/*
+			if strings.HasSuffix(propSegments[i], "[]") {
+				mustArray = true
+				propSegments[i] = strings.TrimSuffix(propSegments[i], "[]")
+			}
+		*/
+
+		if v, ok := m[pn]; ok {
+			m = cast2Map(propName, pn, v, pnKind)
 			if m == nil {
 				return nil
 			}
@@ -35,30 +77,45 @@ func GetProperty(sourceMap map[string]interface{}, propName string) interface{} 
 		}
 	}
 
-	mustArray := false
-	leafPropRef := propSegments[len(propSegments)-1]
-	if strings.HasSuffix(leafPropRef, "[]") {
-		mustArray = true
-		leafPropRef = strings.TrimSuffix(leafPropRef, "[]")
-	}
-
-	v, ok := m[leafPropRef]
+	pn, pnKind := beanUtilPropertyNameKind(propSegments[len(propSegments)-1])
+	v, ok := m[pn]
 	if ok {
 		switch tv := v.(type) {
 		case []string:
-			if mustArray {
+			switch pnKind {
+			case ArrayItemNoneSpecifier:
 				v = tv[0]
-			} else {
-				v = nil
+			case ArrayItemEmptySpecifier:
+				v = tv[0]
+			case ArrayItemStarSpecifier:
+				v = strings.Join(tv, ",")
+			default:
+				if len(tv) > pnKind {
+					v = tv[pnKind]
+				} else {
+					log.Error().Int("len-array", len(tv)).Int("index", pnKind).Msg("array index out of bound")
+					v = nil
+				}
+
 			}
 		case []interface{}:
-			if mustArray {
-				v = tv[0]
-			} else {
+			switch pnKind {
+			case ArrayItemNoneSpecifier:
 				v = nil
+			case ArrayItemEmptySpecifier:
+				v = tv[0]
+			case ArrayItemStarSpecifier:
+				v = tv[0]
+			default:
+				if len(tv) > pnKind {
+					v = tv[pnKind]
+				} else {
+					log.Error().Int("len-array", len(tv)).Int("index", pnKind).Msg("array index out of bound")
+					v = nil
+				}
 			}
 		default:
-			if mustArray {
+			if pnKind != ArrayItemNoneSpecifier {
 				v = nil
 			}
 		}
@@ -86,9 +143,9 @@ func SetProperty(targetMap map[string]interface{}, propertyPath string, value in
 
 	m := targetMap
 	for i := 0; i < len(propSegments)-1; i++ {
-		mustArray := false
+		mustArray := ArrayItemNoneSpecifier
 		if strings.HasSuffix(propSegments[i], "[]") {
-			mustArray = true
+			mustArray = ArrayItemEmptySpecifier
 			propSegments[i] = strings.TrimSuffix(propSegments[i], "[]")
 		}
 
@@ -98,7 +155,7 @@ func SetProperty(targetMap map[string]interface{}, propertyPath string, value in
 				return fmt.Errorf("error in creating patch metadata for %s", propertyPath)
 			}
 		} else {
-			if mustArray {
+			if mustArray == ArrayItemEmptySpecifier {
 				arr := make([]interface{}, 0)
 				arrItem := make(map[string]interface{})
 				arr = append(arr, arrItem)
@@ -116,11 +173,11 @@ func SetProperty(targetMap map[string]interface{}, propertyPath string, value in
 	return nil
 }
 
-func cast2Map(propPath string, propName string, v interface{}, mustArray bool) map[string]interface{} {
+func cast2Map(propPath string, propName string, v interface{}, propertyKind int) map[string]interface{} {
 	var m map[string]interface{}
 	switch tv := v.(type) {
 	case map[string]interface{}:
-		if mustArray {
+		if propertyKind != ArrayItemNoneSpecifier {
 			log.Error().Str(SemLogPropertySegmentName, propName).Str("name", propPath).Msg("expected array and found map")
 		} else {
 			m = tv

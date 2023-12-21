@@ -1,6 +1,7 @@
 package util_test
 
 import (
+	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,29 +16,30 @@ func TestGetProperty(t *testing.T) {
 				map[string]interface{}{
 					"propArrItem": "propArrItemValue",
 					"propArrStringNested": []string{
-						"string-array-nested-value",
+						"string-array-nested-value-1",
+						"string-array-nested-value-2",
 					},
 				},
 			},
 			"propArrString": []string{
-				"string-array-value",
+				"string-array-value-1",
+				"string-array-value-2",
 			},
 		},
 	}
 
-	p := util.GetProperty(m, "propString")
-	require.NotNil(t, p)
-	t.Log("propString", p)
+	testCases := []InputWanted{
+		{input: "propString", wanted: "propString-value"},
+		{input: "propMap.propArr[].propArrItem", wanted: "propArrItemValue"},
+		{input: "propMap.propArr[].propArrStringNested[]", wanted: "string-array-nested-value-1"},
+		{input: "propMap.propArrString[]", wanted: "string-array-value-1"},
+		{input: "propMap.propArrString", wanted: "string-array-value-1"},
+		{input: "propMap.propArrString[*]", wanted: "string-array-value-1,string-array-value-2"},
+	}
 
-	p = util.GetProperty(m, "propMap.propArr[].propArrItem")
-	require.NotNil(t, p)
-	t.Log("propMap.propArr[].propArrItem", p)
+	for i, c := range testCases {
+		p := util.GetProperty(m, c.input)
+		require.Equal(t, c.wanted, p, fmt.Sprintf("error on %d case", i))
+	}
 
-	p = util.GetProperty(m, "propMap.propArr[].propArrStringNested[]")
-	require.NotNil(t, p)
-	t.Log("propMap.propArr[].propArrStringNested[]", p)
-
-	p = util.GetProperty(m, "propMap.propArrString[]")
-	require.NotNil(t, p)
-	t.Log("propMap.propArrString[]", p)
 }
