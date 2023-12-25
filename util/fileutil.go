@@ -2,7 +2,6 @@ package util
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -58,10 +57,11 @@ const (
 )
 
 type fileFindConfig struct {
-	includeList []*regexp.Regexp
-	ignoreList  []*regexp.Regexp
-	recurse     bool
-	fileType    FindFileType
+	includeList              []*regexp.Regexp
+	ignoreList               []*regexp.Regexp
+	recurse                  bool
+	fileType                 FindFileType
+	excludeRootFolderInNames bool
 }
 
 type FileFindOption func(cfg *fileFindConfig)
@@ -75,6 +75,13 @@ func WithFindFileType(ft FindFileType) FileFindOption {
 func WithFindOptionNavigateSubDirs() FileFindOption {
 	return func(cfg *fileFindConfig) {
 		cfg.recurse = true
+	}
+}
+
+// WithExcludeRootFolderInNames used only in the processing of embed.FS structures
+func WithExcludeRootFolderInNames() FileFindOption {
+	return func(cfg *fileFindConfig) {
+		cfg.excludeRootFolderInNames = true
 	}
 }
 
@@ -169,7 +176,7 @@ func FindFiles(folderPath string, opts ...FileFindOption) ([]string, error) {
 		return files, err
 	}
 
-	fis, err := ioutil.ReadDir(folderPath)
+	fis, err := os.ReadDir(folderPath)
 	if err != nil {
 		return nil, err
 	}
