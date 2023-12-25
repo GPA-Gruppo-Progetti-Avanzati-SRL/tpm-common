@@ -8,14 +8,19 @@ import (
 	"strings"
 )
 
-func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindOption) ([]string, error) {
+type FoundFile struct {
+	Path string
+	Info fs.FileInfo
+}
+
+func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindOption) ([]FoundFile, error) {
 
 	cfg := fileFindConfig{fileType: FileTypeAll}
 	for _, o := range opts {
 		o(&cfg)
 	}
 
-	var files []string
+	var files []FoundFile
 	if cfg.recurse {
 		err := walkEmbeddedFS(embeddedFS, folderPath,
 			func(path string, info fs.FileInfo, err error) error {
@@ -28,9 +33,11 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 						ndx := strings.Index(path, "/")
 						if ndx >= 0 {
 							path = path[ndx+1:]
+						} else {
+							path = ""
 						}
 					}
-					files = append(files, path)
+					files = append(files, FoundFile{Path: path, Info: info})
 				}
 
 				return nil
@@ -44,14 +51,19 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 		return nil, err
 	}
 
+	p := ""
+	if !cfg.excludeRootFolderInNames {
+		p = folderPath
+	}
+
 	for _, fi := range fis {
-		p := fi.Name()
-		if !cfg.excludeRootFolderInNames {
-			p = filepath.Join(folderPath, fi.Name())
+		info, err := fi.Info()
+		if err != nil {
+			return files, err
 		}
 
 		if cfg.acceptFileName(fi.Name(), fi.IsDir()) {
-			files = append(files, p)
+			files = append(files, FoundFile{Path: p, Info: info})
 		}
 	}
 
@@ -70,10 +82,10 @@ func walkEmbeddedFS(embedFS embed.FS, path string, visitor EmbeddedFSVisitor) er
 	for _, e := range entries {
 
 		info, err = e.Info()
-		fn := filepath.Join(path, e.Name())
-		err = visitor(fn, info, err)
+		err = visitor(path, info, err)
 
 		if e.IsDir() {
+			fn := filepath.Join(path, e.Name())
 			err = walkEmbeddedFS(embedFS, fn, visitor)
 			if err != nil {
 				return err

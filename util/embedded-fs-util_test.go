@@ -15,13 +15,13 @@ func TestFindEmbeddedFiles(t *testing.T) {
 		"embedded-files",
 		util.WithFindOptionNavigateSubDirs(),
 		util.WithExcludeRootFolderInNames(),
-		util.WithFindOptionIgnoreList([]string{"\\.txt$"}),                 // exclude text files....
-		util.WithFindOptionIncludeList([]string{"\\.template", "sub-dir"}), // include template files... the point is that dirs are excluded...
+		// util.WithFindOptionIgnoreList([]string{"\\.txt$"}),                 // exclude text files....
+		// util.WithFindOptionIncludeList([]string{"\\.template", "sub-dir"}), // include template files... the point is that dirs are excluded...
 	)
 	require.NoError(t, err)
 
 	for _, f := range files {
-		t.Log(f)
+		t.Log(f.Path, f.Info.Name(), f.Info.IsDir())
 	}
 
 	//err = util.WalkEmbeddedFS(templates,
