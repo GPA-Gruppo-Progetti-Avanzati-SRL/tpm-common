@@ -9,8 +9,9 @@ import (
 )
 
 type FoundFile struct {
-	Path string
-	Info fs.FileInfo
+	Path    string
+	Info    fs.FileInfo
+	Content []byte
 }
 
 func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindOption) ([]FoundFile, error) {
@@ -29,6 +30,12 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 				}
 
 				if cfg.acceptFileName(info.Name(), info.IsDir()) {
+
+					var data []byte
+					if cfg.preloadContent && !info.IsDir() {
+						data, err = embeddedFS.ReadFile(filepath.Join(path, info.Name()))
+					}
+
 					if cfg.excludeRootFolderInNames {
 						ndx := strings.Index(path, "/")
 						if ndx >= 0 {
@@ -37,7 +44,8 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 							path = ""
 						}
 					}
-					files = append(files, FoundFile{Path: path, Info: info})
+
+					files = append(files, FoundFile{Path: path, Info: info, Content: data})
 				}
 
 				return nil
@@ -63,7 +71,11 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 		}
 
 		if cfg.acceptFileName(fi.Name(), fi.IsDir()) {
-			files = append(files, FoundFile{Path: p, Info: info})
+			var data []byte
+			if cfg.preloadContent && !info.IsDir() {
+				data, err = embeddedFS.ReadFile(filepath.Join(folderPath, info.Name()))
+			}
+			files = append(files, FoundFile{Path: p, Info: info, Content: data})
 		}
 	}
 
