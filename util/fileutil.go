@@ -57,8 +57,10 @@ const (
 )
 
 type fileFindConfig struct {
-	includeList              []*regexp.Regexp
-	ignoreList               []*regexp.Regexp
+	filesIncludeList         []*regexp.Regexp
+	filesIgnoreList          []*regexp.Regexp
+	foldersIncludeList       []*regexp.Regexp
+	foldersIgnoreList        []*regexp.Regexp
 	recurse                  bool
 	fileType                 FindFileType
 	excludeRootFolderInNames bool // Used currently in the find from embed.FS objects
@@ -93,37 +95,91 @@ func WithFindOptionPreloadContent() FileFindOption {
 	}
 }
 
+func WithFindOptionFoldersIncludeList(p []string) FileFindOption {
+	return func(cfg *fileFindConfig) {
+		if len(p) == 0 {
+			cfg.foldersIncludeList = nil
+		} else {
+			for _, s := range p {
+				cfg.foldersIncludeList = append(cfg.foldersIncludeList, regexp.MustCompile(s))
+			}
+		}
+	}
+}
+
+func WithFindOptionFoldersIgnoreList(p []string) FileFindOption {
+	return func(cfg *fileFindConfig) {
+		if len(p) == 0 {
+			cfg.foldersIgnoreList = nil
+		} else {
+			for _, s := range p {
+				cfg.foldersIgnoreList = append(cfg.foldersIgnoreList, regexp.MustCompile(s))
+			}
+		}
+	}
+}
+
+func WithFindOptionFilesIncludeList(p []string) FileFindOption {
+	return func(cfg *fileFindConfig) {
+		if len(p) == 0 {
+			cfg.filesIncludeList = nil
+		} else {
+			for _, s := range p {
+				cfg.filesIncludeList = append(cfg.filesIncludeList, regexp.MustCompile(s))
+			}
+		}
+	}
+}
+
+func WithFindOptionFilesIgnoreList(p []string) FileFindOption {
+	return func(cfg *fileFindConfig) {
+		if len(p) == 0 {
+			cfg.filesIgnoreList = nil
+		} else {
+			for _, s := range p {
+				cfg.filesIgnoreList = append(cfg.filesIgnoreList, regexp.MustCompile(s))
+			}
+		}
+	}
+}
+
+// WithFindOptionIncludeList For backward compatibility it assigns same stuff to files and folders...
 func WithFindOptionIncludeList(p []string) FileFindOption {
 	return func(cfg *fileFindConfig) {
 		if len(p) == 0 {
-			cfg.includeList = nil
+			cfg.filesIncludeList = nil
 		} else {
 			for _, s := range p {
-				cfg.includeList = append(cfg.includeList, regexp.MustCompile(s))
+				cfg.filesIncludeList = append(cfg.filesIncludeList, regexp.MustCompile(s))
 			}
 		}
+
+		cfg.foldersIncludeList = cfg.filesIncludeList
 	}
 }
 
+// WithFindOptionIgnoreList For backward compatibility it assigns same stuff to files and folders...
 func WithFindOptionIgnoreList(p []string) FileFindOption {
 	return func(cfg *fileFindConfig) {
 		if len(p) == 0 {
-			cfg.ignoreList = nil
+			cfg.filesIgnoreList = nil
 		} else {
 			for _, s := range p {
-				cfg.ignoreList = append(cfg.ignoreList, regexp.MustCompile(s))
+				cfg.filesIgnoreList = append(cfg.filesIgnoreList, regexp.MustCompile(s))
 			}
 		}
+
+		cfg.foldersIgnoreList = cfg.filesIgnoreList
 	}
 }
 
-func (cfg *fileFindConfig) isIncluded(n string) bool {
+func (cfg *fileFindConfig) isIncluded(n string, includeList []*regexp.Regexp) bool {
 
-	if len(cfg.includeList) == 0 {
+	if len(includeList) == 0 {
 		return true
 	}
 
-	for _, r := range cfg.includeList {
+	for _, r := range includeList {
 		if r.Match([]byte(n)) {
 			return true
 		}
@@ -132,13 +188,13 @@ func (cfg *fileFindConfig) isIncluded(n string) bool {
 	return false
 }
 
-func (cfg *fileFindConfig) isExcluded(n string) bool {
+func (cfg *fileFindConfig) isExcluded(n string, ignoreList []*regexp.Regexp) bool {
 
-	if len(cfg.ignoreList) == 0 {
+	if len(ignoreList) == 0 {
 		return false
 	}
 
-	for _, r := range cfg.ignoreList {
+	for _, r := range ignoreList {
 		if r.Match([]byte(n)) {
 			return true
 		}
@@ -147,9 +203,9 @@ func (cfg *fileFindConfig) isExcluded(n string) bool {
 	return false
 }
 
-func (cfg *fileFindConfig) acceptFileName(n string, isDir bool) bool {
-	if !cfg.isExcluded(n) {
-		if cfg.isIncluded(n) {
+func (cfg *fileFindConfig) acceptFileName(n string, isDir bool, includeList, ignoreList []*regexp.Regexp) bool {
+	if !cfg.isExcluded(n, ignoreList) {
+		if cfg.isIncluded(n, includeList) {
 			if (isDir && cfg.fileType != FileTypeFile) || (!isDir && cfg.fileType != FileTypeDir) {
 				return true
 			}
@@ -174,7 +230,14 @@ func FindFiles(folderPath string, opts ...FileFindOption) ([]string, error) {
 					return err
 				}
 
-				if cfg.acceptFileName(info.Name(), info.IsDir()) {
+				includeList := cfg.filesIncludeList
+				ignoreList := cfg.filesIgnoreList
+				if info.IsDir() {
+					includeList = cfg.foldersIncludeList
+					ignoreList = cfg.foldersIgnoreList
+				}
+
+				if cfg.acceptFileName(info.Name(), info.IsDir(), includeList, ignoreList) {
 					files = append(files, path)
 				}
 
@@ -190,8 +253,15 @@ func FindFiles(folderPath string, opts ...FileFindOption) ([]string, error) {
 	}
 
 	for _, fi := range fis {
+		includeList := cfg.filesIncludeList
+		ignoreList := cfg.filesIgnoreList
+		if fi.IsDir() {
+			includeList = cfg.foldersIncludeList
+			ignoreList = cfg.foldersIgnoreList
+		}
+
 		p := filepath.Join(folderPath, fi.Name())
-		if cfg.acceptFileName(fi.Name(), fi.IsDir()) {
+		if cfg.acceptFileName(fi.Name(), fi.IsDir(), includeList, ignoreList) {
 			files = append(files, p)
 		}
 	}

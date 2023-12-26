@@ -29,7 +29,13 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 					return err
 				}
 
-				if cfg.acceptFileName(info.Name(), info.IsDir()) {
+				includeList := cfg.filesIncludeList
+				ignoreList := cfg.filesIgnoreList
+				if info.IsDir() {
+					includeList = cfg.foldersIncludeList
+					ignoreList = cfg.foldersIgnoreList
+				}
+				if cfg.acceptFileName(info.Name(), info.IsDir(), includeList, ignoreList) {
 
 					var data []byte
 					if cfg.preloadContent && !info.IsDir() {
@@ -70,7 +76,14 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 			return files, err
 		}
 
-		if cfg.acceptFileName(fi.Name(), fi.IsDir()) {
+		includeList := cfg.filesIncludeList
+		ignoreList := cfg.filesIgnoreList
+		if info.IsDir() {
+			includeList = cfg.foldersIncludeList
+			ignoreList = cfg.foldersIgnoreList
+		}
+
+		if cfg.acceptFileName(fi.Name(), fi.IsDir(), includeList, ignoreList) {
 			var data []byte
 			if cfg.preloadContent && !info.IsDir() {
 				data, err = embeddedFS.ReadFile(filepath.Join(folderPath, info.Name()))
