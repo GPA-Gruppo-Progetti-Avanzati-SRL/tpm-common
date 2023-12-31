@@ -197,22 +197,28 @@ func cast2Map(propPath string, propName string, v interface{}, propertyKind int)
 	return m
 }
 
-func GetIntProperty(sourceMap map[string]interface{}, p string) int {
+func GetIntProperty(sourceMap map[string]interface{}, p string, required bool, defVal int) (int, error) {
 	i := GetProperty(sourceMap, p)
 	if i != nil {
 		switch tv := i.(type) {
 		case int:
-			return tv
+			return tv, nil
 		case int32:
-			return int(tv)
+			return int(tv), nil
 		case int64:
-			return int(tv)
+			return int(tv), nil
 		case float64:
-			return int(tv)
+			return int(tv), nil
+		default:
+			return 0, fmt.Errorf("property %s of not supported type %T", p, tv)
 		}
 	}
 
-	return 0
+	if required {
+		return 0, fmt.Errorf("property %s not found", p)
+	}
+
+	return defVal, nil
 }
 
 func GetBoolProperty(sourceMap map[string]interface{}, p string, required bool) (bool, error) {
@@ -242,11 +248,14 @@ func GetBoolProperty(sourceMap map[string]interface{}, p string, required bool) 
 	return false, nil
 }
 
-func GetStringProperty(sourceMap map[string]interface{}, propName string) (string, error) {
+func GetStringProperty(sourceMap map[string]interface{}, propName string, required bool) (string, error) {
 
 	v := GetProperty(sourceMap, propName)
 	if v == nil {
-		return "", fmt.Errorf("%s cannot be found in document", propName)
+		if required {
+			return "", fmt.Errorf("%s cannot be found in document", propName)
+		}
+		return "", nil
 	}
 
 	propValue, ok := v.(string)
