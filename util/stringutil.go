@@ -274,3 +274,6 @@ func Underscore(s string) string {
 func Capitalize(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:]
 }
+func DeCapitalize(s string) string {
+	return strings.ToLower(s[0:1]) + s[1:]
+}

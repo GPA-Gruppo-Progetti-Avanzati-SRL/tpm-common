@@ -201,12 +201,45 @@ func GetIntProperty(sourceMap map[string]interface{}, p string) int {
 	i := GetProperty(sourceMap, p)
 	if i != nil {
 		switch tv := i.(type) {
+		case int:
+			return tv
+		case int32:
+			return int(tv)
+		case int64:
+			return int(tv)
 		case float64:
 			return int(tv)
 		}
 	}
 
 	return 0
+}
+
+func GetBoolProperty(sourceMap map[string]interface{}, p string, required bool) (bool, error) {
+	i := GetProperty(sourceMap, p)
+	if i != nil {
+		switch tv := i.(type) {
+		case bool:
+			return tv, nil
+		case string:
+			switch strings.ToLower(tv) {
+			case "true":
+				return true, nil
+			case "false":
+				return false, nil
+			case "":
+				break
+			}
+		default:
+			return false, fmt.Errorf("the property %s is not bool or string but %T", p, tv)
+		}
+	}
+
+	if required {
+		return false, fmt.Errorf("the property %s is not present", p)
+	}
+
+	return false, nil
 }
 
 func GetStringProperty(sourceMap map[string]interface{}, propName string) (string, error) {
