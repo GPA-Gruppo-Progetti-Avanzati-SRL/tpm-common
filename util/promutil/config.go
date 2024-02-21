@@ -53,19 +53,23 @@ func (mCfg MetricsConfigReference) IsZero() bool {
 }
 
 func (mCfg MetricsConfigReference) IsEnabled() bool {
-	return mCfg.GId != "-"
+	return isMetricRefIdEnabled(mCfg.GId)
 }
 
 func (mCfg MetricsConfigReference) IsCounterEnabled() bool {
-	return mCfg.GId != "-" && mCfg.CounterId != "-"
+	return isMetricRefIdEnabled(mCfg.GId) && isMetricRefIdEnabled(mCfg.CounterId)
 }
 
 func (mCfg MetricsConfigReference) IsHistogramEnabled() bool {
-	return mCfg.GId != "-" && mCfg.HistogramId != "-"
+	return isMetricRefIdEnabled(mCfg.GId) && isMetricRefIdEnabled(mCfg.HistogramId)
 }
 
 func (mCfg MetricsConfigReference) IsGaugeEnabled() bool {
-	return mCfg.GId != "-" && mCfg.GaugeId != "-"
+	return isMetricRefIdEnabled(mCfg.GId) && isMetricRefIdEnabled(mCfg.GaugeId)
+}
+
+func isMetricRefIdEnabled(s string) bool {
+	return s != "-" && s != ""
 }
 
 func (mCfg MetricsConfigReference) ResolveGroup(aGroup Group) (Group, bool, error) {
