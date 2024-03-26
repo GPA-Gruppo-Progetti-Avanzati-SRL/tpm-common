@@ -43,7 +43,8 @@ func ListPathHierarchy(startingPath string, upWard bool) []string {
 func FindFileInClosestDirectory(startingFolder, fileName string) string {
 	ph := ListPathHierarchy(startingFolder, true)
 
-	for i := 0; i <= len(ph); i++ {
+	// Fix. Loop was going out of range in ph.
+	for i := 0; i < len(ph); i++ {
 		fp := filepath.Join(ph[i], fileName)
 		_, err := os.Stat(fp)
 		if err == nil {
