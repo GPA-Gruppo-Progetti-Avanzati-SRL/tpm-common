@@ -209,6 +209,12 @@ func GetIntProperty(sourceMap map[string]interface{}, p string, required bool, d
 			return int(tv), nil
 		case float64:
 			return int(tv), nil
+		case string:
+			v, err := strconv.Atoi(tv)
+			if err != nil {
+				return 0, fmt.Errorf("property %s of value %s cannot be converted to int", p, tv)
+			}
+			return v, nil
 		default:
 			return 0, fmt.Errorf("property %s of not supported type %T", p, tv)
 		}
