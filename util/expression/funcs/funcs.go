@@ -3,15 +3,18 @@ package funcs
 import (
 	"github.com/PaesslerAG/gval"
 	"strings"
-	"time"
 )
 
 func Builtins() map[string]interface{} {
 	builtins := make(map[string]interface{})
 	builtins["isDef"] = IsDefined
-	builtins["_now"] = time.Now
-	builtins["_nowAfterDuration"] = func(dur, fmt string) string {
-		v, _ := NowAfterDuration(dur, fmt)
+	builtins["_now"] = func(fmt string) string {
+		v, _ := Now(fmt)
+		return v
+	}
+
+	builtins["_nowAfter"] = func(dur, fmt string) string {
+		v, _ := NowAfter(dur, fmt)
 		return v
 	}
 	return builtins
@@ -19,8 +22,8 @@ func Builtins() map[string]interface{} {
 
 func GValFunctions() []gval.Language {
 	gvalFuncs := []gval.Language{
-		gval.Function("_nowAfterDuration", func(dur string, fmt string) (string, error) {
-			return NowAfterDuration(dur, fmt)
+		gval.Function("_nowAfter", func(dur string, fmt string) (string, error) {
+			return NowAfter(dur, fmt)
 		}),
 	}
 

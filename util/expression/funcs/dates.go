@@ -5,8 +5,12 @@ import (
 	"time"
 )
 
-func NowAfterDuration(d string, fmt string) (string, error) {
-	const semLogContext = "funcs::now-after-duration"
+func Now(fmt string) (string, error) {
+	return time.Now().Format(fmt), nil
+}
+
+func NowAfter(d string, fmt string) (string, error) {
+	const semLogContext = "funcs::now-after"
 
 	dur, err := time.ParseDuration(d)
 	if err != nil {
