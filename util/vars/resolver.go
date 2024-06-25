@@ -3,8 +3,10 @@ package varResolver
 import (
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"reflect"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type VariableReference struct {
@@ -163,9 +165,16 @@ func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) fun
 			log.Info().Msgf(semLogContext+" variable %s not found", varReference.Name)
 		}
 
-		if v != nil {
-			if f, ok := v.(func(a, s string) string); ok {
-				v = f(a, s)
+		if v != nil && reflect.ValueOf(v).Kind() == reflect.Func {
+			switch ft := v.(type) {
+			case func(a, s string) string:
+				v = ft(a, s)
+			case func() time.Time:
+				v = ft()
+			case func(s string) time.Time:
+				v = ft(s)
+			default:
+				log.Error().Str("value-type", fmt.Sprintf("%T", ft)).Msg(semLogContext)
 			}
 		}
 

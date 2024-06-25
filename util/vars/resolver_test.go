@@ -2,6 +2,7 @@ package varResolver_test
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression/funcs"
 	vars "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -53,13 +54,16 @@ func TestResolveVariableReferences(t *testing.T) {
 	sarr = []string{
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 		"${not-present,onf=now,20060102}",
+		"${now,2006-01-02}",
 		fmt.Sprintf("${not-present,%s} - ${ctx-id}", vars.DeferOption),
 	}
 
 	m := map[string]interface{}{
-		"ctx-id": "BPMIFI",
-		"seq-id": 22,
-		"today":  time.Now(),
+		"ctx-id":       "BPMIFI",
+		"seq-id":       22,
+		"today":        time.Now(),
+		"now":          time.Now,
+		"add-duration": funcs.NowAfterDuration,
 		"check-digit": func(a, s string) string {
 			a = strings.Replace(a, fmt.Sprintf("${%s}", s), "", -1)
 			return fmt.Sprint(len(s))

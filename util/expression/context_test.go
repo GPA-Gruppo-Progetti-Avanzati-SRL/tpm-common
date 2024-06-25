@@ -4,6 +4,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 var j = []byte(`
@@ -69,6 +70,10 @@ func TestContextEvaluation(t *testing.T) {
 		{
 			expr:     `!e:{$.missing.props,len=-10,pad=0,defer}`,
 			expected: "!e:{$.missing.props,len=-10,pad=0}", // the onf=keep-ref tag gets deleted when evaluated first time
+		},
+		{
+			expr:     `e:_nowAfterDuration("1m", "2006-01-02")`,
+			expected: time.Now().Format("2006-01-02"),
 		},
 	}
 

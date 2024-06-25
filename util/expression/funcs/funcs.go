@@ -1,17 +1,34 @@
-package expression
+package funcs
 
 import (
+	"github.com/PaesslerAG/gval"
 	"strings"
+	"time"
 )
 
-func BuiltinFuncMap() map[string]interface{} {
+func Builtins() map[string]interface{} {
 	builtins := make(map[string]interface{})
 	builtins["isDef"] = IsDefined
+	builtins["_now"] = time.Now
+	builtins["_nowAfterDuration"] = func(dur, fmt string) string {
+		v, _ := NowAfterDuration(dur, fmt)
+		return v
+	}
 	return builtins
 }
 
+func GValFunctions() []gval.Language {
+	gvalFuncs := []gval.Language{
+		gval.Function("_nowAfterDuration", func(dur string, fmt string) (string, error) {
+			return NowAfterDuration(dur, fmt)
+		}),
+	}
+
+	return gvalFuncs
+}
+
 var expressionSmell = []string{
-	"now",
+	"_now",
 	"isDef",
 	">",
 	"<",

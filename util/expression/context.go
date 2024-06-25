@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression/funcs"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/PaesslerAG/gval"
 	"github.com/PaesslerAG/jsonpath"
@@ -18,6 +19,7 @@ type Context struct {
 	vars    map[string]interface{}
 	input   map[string]interface{}
 	headers NameValuePairs
+	gvals   []gval.Language
 }
 
 type NameValuePair struct {
@@ -57,10 +59,6 @@ func WithVars(m map[string]interface{}) Option {
 			r.vars[n] = i
 		}
 
-		for n, i := range BuiltinFuncMap() {
-			r.vars[n] = i
-		}
-
 		return nil
 	}
 }
@@ -74,6 +72,21 @@ func WithFuncMap(fm map[string]interface{}) Option {
 
 		for n, i := range fm {
 			r.vars[n] = i
+		}
+
+		return nil
+	}
+}
+
+func WithGValFunctions(fm []gval.Language) Option {
+	return func(r *Context) error {
+
+		if len(r.gvals) == 0 {
+			r.gvals = make([]gval.Language, 0)
+		}
+
+		for _, f := range fm {
+			r.gvals = append(r.gvals, f)
 		}
 
 		return nil
@@ -110,6 +123,15 @@ func WithMapInput(aBody map[string]interface{}) Option {
 
 func NewContext(opts ...Option) (*Context, error) {
 	pvr := &Context{}
+	pvr.vars = make(map[string]interface{})
+	for n, i := range funcs.Builtins() {
+		pvr.vars[n] = i
+	}
+
+	pvr.gvals = make([]gval.Language, 0)
+	for _, f := range funcs.GValFunctions() {
+		pvr.gvals = append(pvr.gvals, f)
+	}
 
 	for _, o := range opts {
 		err := o(pvr)
@@ -167,9 +189,10 @@ func (pvr *Context) EvalOne(v string) (interface{}, error) {
 
 	isExpr := false
 	if !deferred {
-		v, isExpr = IsExpression(v)
+		v, isExpr = funcs.IsExpression(v)
+
 		if isExpr {
-			return gval.Evaluate(v, pvr)
+			return gval.Evaluate(v, pvr.vars, pvr.gvals...)
 		}
 	}
 
