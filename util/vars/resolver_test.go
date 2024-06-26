@@ -63,7 +63,7 @@ func TestResolveVariableReferences(t *testing.T) {
 		"seq-id":       22,
 		"today":        time.Now(),
 		"now":          time.Now,
-		"add-duration": funcs.NowAfterDuration,
+		"add-duration": funcs.NowAfter,
 		"check-digit": func(a, s string) string {
 			a = strings.Replace(a, fmt.Sprintf("${%s}", s), "", -1)
 			return fmt.Sprint(len(s))

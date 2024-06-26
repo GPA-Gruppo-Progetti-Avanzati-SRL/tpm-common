@@ -1,6 +1,7 @@
 package funcs
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/PaesslerAG/gval"
 	"strings"
 )
@@ -17,13 +18,27 @@ func Builtins() map[string]interface{} {
 		v, _ := NowAfter(dur, fmt)
 		return v
 	}
+
+	builtins["_pad"] = func(s string, len int) string {
+		v, _ := util.Pad2Length(s, len, "0")
+		return v
+	}
+
 	return builtins
 }
 
+// GValFunctions Not used actually. Not needed for expression. The funcMap should be enough
 func GValFunctions() []gval.Language {
 	gvalFuncs := []gval.Language{
 		gval.Function("_nowAfter", func(dur string, fmt string) (string, error) {
 			return NowAfter(dur, fmt)
+		}),
+		gval.Function("_now", func(fmt string) (string, error) {
+			return Now(fmt)
+		}),
+		gval.Function("_pad", func(s string, len int) (string, error) {
+			v, _ := util.Pad2Length(s, len, "0")
+			return v, nil
 		}),
 	}
 

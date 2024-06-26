@@ -78,6 +78,7 @@ func WithFuncMap(fm map[string]interface{}) Option {
 	}
 }
 
+// WithGValFunctions Not used actually. Not needed for expression. The funcMap should be enough
 func WithGValFunctions(fm []gval.Language) Option {
 	return func(r *Context) error {
 
@@ -128,10 +129,12 @@ func NewContext(opts ...Option) (*Context, error) {
 		pvr.vars[n] = i
 	}
 
-	pvr.gvals = make([]gval.Language, 0)
-	for _, f := range funcs.GValFunctions() {
-		pvr.gvals = append(pvr.gvals, f)
-	}
+	/*
+		pvr.gvals = make([]gval.Language, 0)
+		for _, f := range funcs.GValFunctions() {
+			pvr.gvals = append(pvr.gvals, f)
+		}
+	*/
 
 	for _, o := range opts {
 		err := o(pvr)

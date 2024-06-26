@@ -72,7 +72,7 @@ func TestContextEvaluation(t *testing.T) {
 			expected: "!e:{$.missing.props,len=-10,pad=0}", // the onf=keep-ref tag gets deleted when evaluated first time
 		},
 		{
-			expr:     `e:_nowAfterDuration("1m", "2006-01-02")`,
+			expr:     `e:_nowAfter("1m", "2006-01-02")`,
 			expected: time.Now().Format("2006-01-02"),
 		},
 	}
