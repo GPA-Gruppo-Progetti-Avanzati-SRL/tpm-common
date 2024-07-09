@@ -43,6 +43,10 @@ func ParseVariable(n string) (Variable, error) {
 	pfix := getPrefix(nm, VariablePrefixNotSpecified)
 	if pfix != VariablePrefixNotSpecified {
 		nm = strings.TrimPrefix(nm, string(pfix))
+		if pfix == VariablePrefixDollarSquareBracket {
+			nm = strings.TrimPrefix(nm, "\"")
+			nm = strings.TrimSuffix(nm, "\"]")
+		}
 	}
 	v := Variable{Name: nm, Prefix: pfix}
 
@@ -57,6 +61,17 @@ func ParseVariable(n string) (Variable, error) {
 	return v, nil
 }
 
+func (vr Variable) JsonPathName() string {
+	if vr.Prefix == VariablePrefixDollarDot {
+		return string(vr.Prefix) + vr.Name
+	}
+
+	if vr.Prefix == VariablePrefixDollarSquareBracket {
+		return string(vr.Prefix) + vr.Name + "]"
+	}
+	return ""
+}
+
 func (vr Variable) Raw() string {
 	var s []string
 	if vr.Prefix != VariablePrefixNotSpecified {
@@ -68,9 +83,11 @@ func (vr Variable) Raw() string {
 	return strings.Join(s, ",")
 }
 
-func (vr Variable) ToString(v interface{}, jsonEscape bool) (string, error) {
+// ToString introduced skipOpts to not interpret unknown properties as sprintf or time layout.
+// unknown opts are deprecated.
+func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (string, error) {
 
-	opts := vr.getOpts(v)
+	opts := vr.getOpts(v, skipOpts)
 	if v == nil {
 		v = opts.DefaultValue
 	}
@@ -129,7 +146,43 @@ const (
 	VariablePrefixVColon              VariablePrefix = "v:"
 	VariablePrefixHColon              VariablePrefix = "h:"
 	VariablePrefixDollarSquareBracket VariablePrefix = "$["
+
+	FormatOptLen        = "len="
+	FormatOptPad        = "pad="
+	FormatOptOnf        = "onf="
+	FormatOptSprintf    = "sprf="
+	FormatOptTimeLayout = "tml="
+	FormatOptRotate     = "rotate"
+	FormatOptQuoted     = "quoted"
+	FormatOptPadChar    = "pad"
 )
+
+var optsMap = map[string]struct{}{
+	FormatOptLen:        struct{}{},
+	FormatOptPad:        struct{}{},
+	FormatOptOnf:        struct{}{},
+	FormatOptSprintf:    struct{}{},
+	FormatOptTimeLayout: struct{}{},
+	FormatOptRotate:     struct{}{},
+	FormatOptQuoted:     struct{}{},
+	FormatOptPadChar:    struct{}{},
+}
+
+func resolveFormatOption(s string) string {
+	const semLogContext = "variable::resolve-format-opts"
+
+	if ndx := strings.Index(s, "="); ndx >= 0 {
+		s = s[:ndx+1]
+	}
+
+	_, ok := optsMap[s]
+	if !ok {
+		log.Warn().Str("opt", s).Msg(semLogContext + " format option not found")
+		return ""
+	}
+
+	return s
+}
 
 var knownPrefixes = []VariablePrefix{VariablePrefixEnv, VariablePrefixDollarDot, VariablePrefixVColon, VariablePrefixHColon, VariablePrefixDollarSquareBracket}
 
@@ -143,7 +196,7 @@ func getPrefix(s string, defaultPrefix VariablePrefix) VariablePrefix {
 	return defaultPrefix
 }
 
-func (vr Variable) getOpts(value interface{}) VariableOpts {
+func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 
 	const semLogContext = "variable-name::get-opts"
 
@@ -157,29 +210,29 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 		DefaultValue: "",
 	}
 
-	for i := 0; i < len(vr.tags); i++ {
-		switch vr.tags[i] {
-		case "rotate":
-			opts.Rotate = true
-		case "quoted":
-			opts.Quoted = true
-		case "pad":
-			opts.PadChar = "0"
-		default:
-			resolved := false
-			if strings.HasPrefix(vr.tags[i], "len=") {
-				resolved = true
-				v, err := strconv.Atoi(strings.TrimPrefix(vr.tags[i], "len="))
+	if !skipOpts {
+		for i := 0; i < len(vr.tags); i++ {
+
+			formatOption := resolveFormatOption(vr.tags[i])
+
+			switch formatOption {
+			case FormatOptRotate:
+				opts.Rotate = true
+			case FormatOptQuoted:
+				opts.Quoted = true
+			case FormatOptPadChar:
+				opts.PadChar = "0"
+			case FormatOptLen:
+
+				v, err := strconv.Atoi(strings.TrimPrefix(vr.tags[i], FormatOptLen))
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext + " invalid variable tag")
 				} else {
 					opts.MaxLength = v
 				}
-			}
 
-			if !resolved && strings.HasPrefix(vr.tags[i], "pad=") {
-				resolved = true
-				v := strings.TrimPrefix(vr.tags[i], "pad=")
+			case FormatOptPad:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptPad)
 				switch v {
 				case "blnk":
 					opts.PadChar = " "
@@ -188,12 +241,10 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 				default:
 					opts.PadChar = v[0:1]
 				}
-			}
 
-			if !resolved && strings.HasPrefix(vr.tags[i], "onf=") {
-				resolved = true
+			case FormatOptOnf:
 				if value == nil {
-					v := strings.TrimPrefix(vr.tags[i], "onf=")
+					v := strings.TrimPrefix(vr.tags[i], FormatOptOnf)
 					switch v {
 					case "now":
 						opts.DefaultValue = time.Now()
@@ -206,9 +257,16 @@ func (vr Variable) getOpts(value interface{}) VariableOpts {
 
 					value = opts.DefaultValue
 				}
-			}
 
-			if !resolved {
+			case FormatOptSprintf:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptSprintf)
+				opts.Format = "%" + v
+				opts.FormatType = "sprintf"
+			case FormatOptTimeLayout:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptTimeLayout)
+				opts.Format = v
+				opts.FormatType = "time-layout"
+			default:
 				switch value.(type) {
 				case time.Time:
 					opts.Format = vr.tags[i]

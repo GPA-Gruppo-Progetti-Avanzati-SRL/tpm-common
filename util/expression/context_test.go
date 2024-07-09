@@ -82,7 +82,7 @@ func TestContextEvaluation(t *testing.T) {
 
 	for i, input := range arr {
 		v, err := exprCtx.EvalOne(input.expr)
-		require.NoError(t, err)
+		require.NoError(t, err, "[%d] error", i)
 		require.EqualValues(t, input.expected, v, "[%d] Expected doesn't match actual", i)
 	}
 

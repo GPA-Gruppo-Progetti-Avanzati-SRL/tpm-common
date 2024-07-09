@@ -331,7 +331,7 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 		fallthrough
 	case varResolver.VariablePrefixDollarDot:
 
-		varValue, err = jsonpath.Get(variable.Name, pvr.input)
+		varValue, err = jsonpath.Get(variable.JsonPathName(), pvr.input)
 		// log.Trace().Str("path-name", s).Interface("value", v).Msg("evaluation of var")
 		/*
 			if err == nil {
@@ -371,7 +371,7 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 		}
 	}
 
-	s, err = variable.ToString(varValue, doEscape)
+	s, err = variable.ToString(varValue, doEscape, false)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 	}

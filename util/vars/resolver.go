@@ -178,7 +178,7 @@ func SimpleMapResolver(m map[string]interface{} /*, onVarNotFound string */) fun
 			}
 		}
 
-		res, _ := varReference.ToString(v, false)
+		res, _ := varReference.ToString(v, false, false)
 		return res, varReference.Deferred
 	}
 }
