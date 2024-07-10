@@ -48,6 +48,10 @@ func TestContextEvaluation(t *testing.T) {
 		expected interface{}
 	}{
 		{
+			expr:     `{$}`,
+			expected: "8188602",
+		},
+		{
 			expr:     `{$.beneficiario.numero}`,
 			expected: "8188602",
 		},

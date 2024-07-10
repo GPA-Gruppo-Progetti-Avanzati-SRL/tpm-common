@@ -47,6 +47,12 @@ func ParseVariable(n string) (Variable, error) {
 			nm = strings.TrimPrefix(nm, "\"")
 			nm = strings.TrimSuffix(nm, "\"]")
 		}
+	} else {
+		// handle the special case of $ to match the whole object. The case is put back in the VariablePrefixDollarDot case that is handled in the JsonPathName method
+		if nm == "$" {
+			pfix = VariablePrefixDollarDot
+			nm = ""
+		}
 	}
 	v := Variable{Name: nm, Prefix: pfix}
 
@@ -63,6 +69,11 @@ func ParseVariable(n string) (Variable, error) {
 
 func (vr Variable) JsonPathName() string {
 	if vr.Prefix == VariablePrefixDollarDot {
+		// Handle the case of $ as the whole object.
+		if vr.Name == "" {
+			return "$"
+		}
+
 		return string(vr.Prefix) + vr.Name
 	}
 
@@ -140,6 +151,10 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 type VariablePrefix string
 
 const (
+	// VariablePrefixDollarDot and VariablePrefixDollar jsonpath expressions are of type $. to select properties or simply $ to match the whole object.
+
+	// VariablePrefixDollar              VariablePrefix = "$"
+
 	VariablePrefixNotSpecified        VariablePrefix = "not-present"
 	VariablePrefixEnv                 VariablePrefix = "env:"
 	VariablePrefixDollarDot           VariablePrefix = "$."
@@ -184,6 +199,9 @@ func resolveFormatOption(s string) string {
 	return s
 }
 
+// knownPrefixes VariablePrefixDollarDot and VariablePrefixDollar jsonpath expressions are of type $. to select properties or simply $ to match the whole object.
+// it's crucial that in the knownPrefixes array the less specific VariablePrefixDollar be put after the more specific VariablePrefixDollarDot in order not to have a sort of catch all
+// effect
 var knownPrefixes = []VariablePrefix{VariablePrefixEnv, VariablePrefixDollarDot, VariablePrefixVColon, VariablePrefixHColon, VariablePrefixDollarSquareBracket}
 
 func getPrefix(s string, defaultPrefix VariablePrefix) VariablePrefix {
