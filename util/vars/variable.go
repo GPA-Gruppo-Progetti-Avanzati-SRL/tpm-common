@@ -78,7 +78,7 @@ func (vr Variable) JsonPathName() string {
 	}
 
 	if vr.Prefix == VariablePrefixDollarSquareBracket {
-		return string(vr.Prefix) + vr.Name + "]"
+		return string(vr.Prefix) + "\"" + vr.Name + "\"]"
 	}
 	return ""
 }
