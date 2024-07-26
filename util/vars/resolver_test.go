@@ -57,12 +57,15 @@ func TestResolveVariableReferences(t *testing.T) {
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 		"${not-present,onf=now,20060102}",
 		"${now,2006-01-02}",
+		"${NOT_DEFINED_VAR,onf=false,ont=true}",
+		"${MY_VAR,onf=false,ont=true}",
 		fmt.Sprintf("${not-present,%s} - ${ctx-id}", vars.DeferOption),
 	}
 
 	m := map[string]interface{}{
 		"ctx-id":       "BPMIFI",
 		"seq-id":       22,
+		"MY_VAR":       "MY_VAR_VALUE",
 		"today":        time.Now(),
 		"now":          time.Now,
 		"add-duration": funcs.NowAfter,
