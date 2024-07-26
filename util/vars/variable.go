@@ -244,6 +244,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 	}
 
 	if !skipOpts {
+		onFalsePresent := false
 		for i := 0; i < len(vr.tags); i++ {
 
 			formatOption := resolveFormatOption(vr.tags[i])
@@ -289,6 +290,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 					}
 
 					value = opts.DefaultValue
+					onFalsePresent = true
 				}
 
 			case FormatOptSprintf:
@@ -300,7 +302,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				opts.Format = v
 				opts.FormatType = FormatTypeTimeLayout
 			case FormatOptOnt:
-				if value != nil {
+				if value != nil && !onFalsePresent {
 					v := strings.TrimPrefix(vr.tags[i], FormatOptOnt)
 					opts.Format = v
 					opts.FormatType = FormatTypeOnTrue
