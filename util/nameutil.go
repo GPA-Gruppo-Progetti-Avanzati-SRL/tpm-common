@@ -7,6 +7,7 @@ import (
 
 // utils used by generators to handle references to packages and folders.
 
+// HierarchicalNamePathForm Verificare perche' e' stato inserita la possibilità del trattino come primo carattere.
 var HierarchicalNamePathForm = regexp.MustCompile("^(./)?[a-z\\-A-Z_0-9]+(/[a-z\\-A-Z_0-9]+)*$")
 var HierarchicalNameDotForm = regexp.MustCompile("^[a-z\\-A-Z_0-9]+(\\.[a-z\\-A-Z_0-9]+)*$")
 

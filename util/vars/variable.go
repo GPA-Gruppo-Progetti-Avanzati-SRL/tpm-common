@@ -107,19 +107,27 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	var b []byte
 	var err error
 	switch opts.FormatType {
-	case "time-layout":
+	case FormatTypeTimeLayout:
 		res = v.(time.Time).Format(opts.Format)
-	case "sprintf":
+	case FormatTypeSprintf:
 		res = fmt.Sprintf(opts.Format, v)
-	case "map-json":
+	case FormatTypeMapJson:
 		b, err = json.Marshal(v)
 		if err == nil {
 			res = string(b)
 		}
-	case "array-json":
+	case FormatTypeArrayJson:
 		b, err = json.Marshal(v)
 		if err == nil {
 			res = string(b)
+		}
+	case FormatTypeIsNull:
+		if v == nil {
+			res = opts.Format
+		}
+	case FormatTypeIsNotNull:
+		if v != nil {
+			res = opts.Format
 		}
 	default:
 		res = fmt.Sprint(v)
@@ -170,6 +178,16 @@ const (
 	FormatOptRotate     = "rotate"
 	FormatOptQuoted     = "quoted"
 	FormatOptPadChar    = "pad"
+	FormatOptIsNull     = "ifisnull="
+	FormatOptIsNotNull  = "ifisnotnull="
+
+	FormatTypeTimeLayout = "time-layout"
+	FormatTypeSprintf    = "sprintf"
+	FormatTypeSprint     = "sprint"
+	FormatTypeMapJson    = "map-json"
+	FormatTypeArrayJson  = "array-json"
+	FormatTypeIsNull     = "is-null"
+	FormatTypeIsNotNull  = "is-not-null"
 )
 
 var optsMap = map[string]struct{}{
@@ -181,6 +199,8 @@ var optsMap = map[string]struct{}{
 	FormatOptRotate:     struct{}{},
 	FormatOptQuoted:     struct{}{},
 	FormatOptPadChar:    struct{}{},
+	FormatOptIsNull:     struct{}{},
+	FormatOptIsNotNull:  struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -279,37 +299,46 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 			case FormatOptSprintf:
 				v := strings.TrimPrefix(vr.tags[i], FormatOptSprintf)
 				opts.Format = "%" + v
-				opts.FormatType = "sprintf"
+				opts.FormatType = FormatTypeSprintf
 			case FormatOptTimeLayout:
 				v := strings.TrimPrefix(vr.tags[i], FormatOptTimeLayout)
 				opts.Format = v
-				opts.FormatType = "time-layout"
+				opts.FormatType = FormatTypeTimeLayout
+			case FormatOptIsNull:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptIsNull)
+				opts.Format = v
+				opts.FormatType = FormatTypeIsNull
+			case FormatOptIsNotNull:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptIsNotNull)
+				opts.Format = v
+				opts.FormatType = FormatTypeIsNotNull
+
 			default:
 				switch value.(type) {
 				case time.Time:
 					opts.Format = vr.tags[i]
-					opts.FormatType = "time-layout"
+					opts.FormatType = FormatTypeTimeLayout
 				default:
 					opts.Format = "%" + vr.tags[i]
-					opts.FormatType = "sprintf"
+					opts.FormatType = FormatTypeSprintf
 				}
 			}
 		}
 	}
 
 	if opts.FormatType == "" {
-		opts.FormatType = "sprint"
+		opts.FormatType = FormatTypeSprint
 		switch value.(type) {
 		case float64, float32:
 			opts.Format = "%f"
-			opts.FormatType = "sprintf"
+			opts.FormatType = FormatTypeSprintf
 		case map[string]interface{}:
-			opts.FormatType = "map-json"
+			opts.FormatType = FormatTypeMapJson
 		case []interface{}:
-			opts.FormatType = "array-json"
+			opts.FormatType = FormatTypeArrayJson
 		default:
 			opts.Format = "%v"
-			opts.FormatType = "sprintf"
+			opts.FormatType = FormatTypeSprintf
 		}
 	}
 
