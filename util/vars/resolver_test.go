@@ -43,6 +43,8 @@ func TestResolveVariableReferences(t *testing.T) {
 		"<#=DASH_VAR#>",
 		"my var: ${MY_VAR}, second one: ${SECOND_ONE}, third var: ${THIRD_ONE}",
 		"${MY_VAR,quoted,08d}",
+		"${NOT_DEFINED_VAR,onf=false,ont=true}",
+		"${MY_VAR,onf=false,ont=true}",
 	}
 
 	for _, s := range sarr {
