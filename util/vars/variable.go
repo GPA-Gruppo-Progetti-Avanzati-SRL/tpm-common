@@ -121,11 +121,8 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 		if err == nil {
 			res = string(b)
 		}
-	case FormatTypeIsNull:
-		if v == nil {
-			res = opts.Format
-		}
-	case FormatTypeIsNotNull:
+
+	case FormatTypeOnTrue:
 		if v != nil {
 			res = opts.Format
 		}
@@ -173,34 +170,32 @@ const (
 	FormatOptLen        = "len="
 	FormatOptPad        = "pad="
 	FormatOptOnf        = "onf="
+	FormatOptOnt        = "ont="
 	FormatOptSprintf    = "sprf="
 	FormatOptTimeLayout = "tml="
 	FormatOptRotate     = "rotate"
 	FormatOptQuoted     = "quoted"
 	FormatOptPadChar    = "pad"
-	FormatOptIsNull     = "ifisnull="
-	FormatOptIsNotNull  = "ifisnotnull="
 
 	FormatTypeTimeLayout = "time-layout"
 	FormatTypeSprintf    = "sprintf"
 	FormatTypeSprint     = "sprint"
 	FormatTypeMapJson    = "map-json"
 	FormatTypeArrayJson  = "array-json"
-	FormatTypeIsNull     = "is-null"
-	FormatTypeIsNotNull  = "is-not-null"
+	FormatTypeOnFalse    = "on-false"
+	FormatTypeOnTrue     = "on-true"
 )
 
 var optsMap = map[string]struct{}{
 	FormatOptLen:        struct{}{},
 	FormatOptPad:        struct{}{},
 	FormatOptOnf:        struct{}{},
+	FormatOptOnt:        struct{}{},
 	FormatOptSprintf:    struct{}{},
 	FormatOptTimeLayout: struct{}{},
 	FormatOptRotate:     struct{}{},
 	FormatOptQuoted:     struct{}{},
 	FormatOptPadChar:    struct{}{},
-	FormatOptIsNull:     struct{}{},
-	FormatOptIsNotNull:  struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -304,14 +299,12 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				v := strings.TrimPrefix(vr.tags[i], FormatOptTimeLayout)
 				opts.Format = v
 				opts.FormatType = FormatTypeTimeLayout
-			case FormatOptIsNull:
-				v := strings.TrimPrefix(vr.tags[i], FormatOptIsNull)
-				opts.Format = v
-				opts.FormatType = FormatTypeIsNull
-			case FormatOptIsNotNull:
-				v := strings.TrimPrefix(vr.tags[i], FormatOptIsNotNull)
-				opts.Format = v
-				opts.FormatType = FormatTypeIsNotNull
+			case FormatOptOnt:
+				if value != nil {
+					v := strings.TrimPrefix(vr.tags[i], FormatOptOnt)
+					opts.Format = v
+					opts.FormatType = FormatTypeOnTrue
+				}
 
 			default:
 				switch value.(type) {
