@@ -277,7 +277,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				}
 
 			case FormatOptOnf:
-				if value == nil {
+				if isOnf(value) {
 					v := strings.TrimPrefix(vr.tags[i], FormatOptOnf)
 					switch v {
 					case "now":
@@ -302,7 +302,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				opts.Format = v
 				opts.FormatType = FormatTypeTimeLayout
 			case FormatOptOnt:
-				if value != nil && !onFalsePresent {
+				if isOnt(value, onFalsePresent) {
 					v := strings.TrimPrefix(vr.tags[i], FormatOptOnt)
 					opts.Format = v
 					opts.FormatType = FormatTypeOnTrue
@@ -338,6 +338,26 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 	}
 
 	return opts
+}
+
+func isOnf(value interface{}) bool {
+	return value == nil
+}
+
+func isOnt(value interface{}, onFalsePresent bool) bool {
+	ont := false
+	if value != nil && !onFalsePresent {
+		switch t := value.(type) {
+		case string:
+			if t != "" {
+				ont = true
+			}
+		default:
+			ont = true
+		}
+	}
+
+	return ont
 }
 
 /*
