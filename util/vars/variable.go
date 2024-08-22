@@ -341,7 +341,18 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 }
 
 func isOnf(value interface{}) bool {
-	return value == nil
+	if value == nil {
+		return true
+	}
+
+	switch t := value.(type) {
+	case string:
+		if t == "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isOnt(value interface{}, onFalsePresent bool) bool {
