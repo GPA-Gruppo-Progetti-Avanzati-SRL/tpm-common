@@ -99,7 +99,7 @@ func (vr Variable) Raw() string {
 func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (string, error) {
 
 	opts := vr.getOpts(v, skipOpts)
-	if v == nil {
+	if isOnf(v) {
 		v = opts.DefaultValue
 	}
 
