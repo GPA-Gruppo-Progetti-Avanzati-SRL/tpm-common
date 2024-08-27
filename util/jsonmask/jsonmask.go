@@ -68,6 +68,7 @@ func (jm *JsonMask) Add(ctxName string, fields []FieldInfo) {
 }
 
 func (jm *JsonMask) Mask(ctxName string, jsonData []byte) ([]byte, error) {
+
 	if /* (len(jm.fullPathsRegistry) == 0 && len(jm.partialPathsRegistry) == 0) || */ len(jsonData) == 0 {
 		return jsonData, nil
 	}
