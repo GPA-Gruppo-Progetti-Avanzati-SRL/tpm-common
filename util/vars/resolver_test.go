@@ -44,7 +44,6 @@ func TestResolveVariableReferences(t *testing.T) {
 		"my var: ${MY_VAR}, second one: ${SECOND_ONE}, third var: ${THIRD_ONE}",
 		"${MY_VAR,quoted,08d}",
 		"${NOT_DEFINED_VAR,onf=false,ont=true}",
-		"${MY_VAR,onf=false,ont=true}",
 	}
 
 	for _, s := range sarr {
@@ -60,6 +59,8 @@ func TestResolveVariableReferences(t *testing.T) {
 		"${NOT_DEFINED_VAR,onf=false,ont=true}",
 		"${MY_VAR,onf=false,ont=true}",
 		fmt.Sprintf("${not-present,%s} - ${ctx-id}", vars.DeferOption),
+		"${MY_VAR,onf=false,ont=true,quoted-ont}",
+		"${MY_VAR_NOT_EXISTENT,onf=false,ont=true,quoted-ont}",
 	}
 
 	m := map[string]interface{}{

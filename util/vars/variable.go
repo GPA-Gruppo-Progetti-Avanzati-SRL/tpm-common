@@ -175,6 +175,8 @@ const (
 	FormatOptTimeLayout = "tml="
 	FormatOptRotate     = "rotate"
 	FormatOptQuoted     = "quoted"
+	FormatOptQuotedOnt  = "quoted-ont"
+	FormatOptQuotedOnf  = "quoted-onf"
 	FormatOptPadChar    = "pad"
 
 	FormatTypeTimeLayout = "time-layout"
@@ -195,6 +197,8 @@ var optsMap = map[string]struct{}{
 	FormatOptTimeLayout: struct{}{},
 	FormatOptRotate:     struct{}{},
 	FormatOptQuoted:     struct{}{},
+	FormatOptQuotedOnt:  struct{}{},
+	FormatOptQuotedOnf:  struct{}{},
 	FormatOptPadChar:    struct{}{},
 }
 
@@ -244,7 +248,9 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 	}
 
 	if !skipOpts {
-		onFalsePresent := false
+		isFalse := isOnf(value)
+		isTrue := isOnt(value)
+
 		for i := 0; i < len(vr.tags); i++ {
 
 			formatOption := resolveFormatOption(vr.tags[i])
@@ -254,10 +260,17 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				opts.Rotate = true
 			case FormatOptQuoted:
 				opts.Quoted = true
+			case FormatOptQuotedOnt:
+				if isTrue {
+					opts.Quoted = true
+				}
+			case FormatOptQuotedOnf:
+				if isFalse {
+					opts.Quoted = true
+				}
 			case FormatOptPadChar:
 				opts.PadChar = "0"
 			case FormatOptLen:
-
 				v, err := strconv.Atoi(strings.TrimPrefix(vr.tags[i], FormatOptLen))
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext + " invalid variable tag")
@@ -277,7 +290,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				}
 
 			case FormatOptOnf:
-				if isOnf(value) {
+				if isFalse {
 					v := strings.TrimPrefix(vr.tags[i], FormatOptOnf)
 					switch v {
 					case "now":
@@ -290,7 +303,6 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 					}
 
 					value = opts.DefaultValue
-					onFalsePresent = true
 				}
 
 			case FormatOptSprintf:
@@ -302,7 +314,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				opts.Format = v
 				opts.FormatType = FormatTypeTimeLayout
 			case FormatOptOnt:
-				if isOnt(value, onFalsePresent) {
+				if isTrue {
 					v := strings.TrimPrefix(vr.tags[i], FormatOptOnt)
 					opts.Format = v
 					opts.FormatType = FormatTypeOnTrue
@@ -355,9 +367,9 @@ func isOnf(value interface{}) bool {
 	return false
 }
 
-func isOnt(value interface{}, onFalsePresent bool) bool {
+func isOnt(value interface{}) bool {
 	ont := false
-	if value != nil && !onFalsePresent {
+	if value != nil {
 		switch t := value.(type) {
 		case string:
 			if t != "" {
