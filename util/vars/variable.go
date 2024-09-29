@@ -203,17 +203,18 @@ const (
 )
 
 var optsMap = map[string]struct{}{
-	FormatOptLen:        struct{}{},
-	FormatOptPad:        struct{}{},
-	FormatOptOnf:        struct{}{},
-	FormatOptOnt:        struct{}{},
-	FormatOptSprintf:    struct{}{},
-	FormatOptTimeLayout: struct{}{},
-	FormatOptRotate:     struct{}{},
-	FormatOptQuoted:     struct{}{},
-	FormatOptQuotedOnt:  struct{}{},
-	FormatOptQuotedOnf:  struct{}{},
-	FormatOptPadChar:    struct{}{},
+	FormatOptLen:         struct{}{},
+	FormatOptPad:         struct{}{},
+	FormatOptOnf:         struct{}{},
+	FormatOptOnt:         struct{}{},
+	FormatOptSprintf:     struct{}{},
+	FormatOptTimeLayout:  struct{}{},
+	FormatOptRotate:      struct{}{},
+	FormatOptQuoted:      struct{}{},
+	FormatOptQuotedOnt:   struct{}{},
+	FormatOptQuotedOnf:   struct{}{},
+	FormatOptPadChar:     struct{}{},
+	FormatOptWithTempVar: struct{}{},
 }
 
 func resolveFormatOption(s string) string {
