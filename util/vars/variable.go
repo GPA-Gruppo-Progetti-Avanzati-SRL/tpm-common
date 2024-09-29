@@ -12,21 +12,24 @@ import (
 )
 
 const (
+
 	// ReferenceSelf = "[variable-ref]"
 	// OnNotFoundTag                      = "onf"
 	// KeepReferenceOnNotFoundOptionValue = "keep-ref"
 	// OnNotFoundKeepVariableOption = OnNotFoundTag + "=" + KeepReferenceOnNotFoundOptionValue
+
 	DeferOption = "defer"
 )
 
 type VariableOpts struct {
-	Rotate       bool
-	Quoted       bool
-	FormatType   string
-	Format       string
-	MaxLength    int
-	PadChar      string
-	DefaultValue interface{}
+	Rotate        bool
+	Quoted        bool
+	CreateTempVar bool
+	FormatType    string
+	Format        string
+	MaxLength     int
+	PadChar       string
+	DefaultValue  interface{}
 }
 
 type Variable struct {
@@ -92,6 +95,16 @@ func (vr Variable) Raw() string {
 	}
 	s = append(s, vr.tags...)
 	return strings.Join(s, ",")
+}
+
+func (vr Variable) IsTagPresent(tag string) bool {
+	for i := 0; i < len(vr.tags); i++ {
+		if resolveFormatOption(vr.tags[i]) == tag {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ToString introduced skipOpts to not interpret unknown properties as sprintf or time layout.
@@ -167,17 +180,18 @@ const (
 	VariablePrefixHColon              VariablePrefix = "h:"
 	VariablePrefixDollarSquareBracket VariablePrefix = "$["
 
-	FormatOptLen        = "len="
-	FormatOptPad        = "pad="
-	FormatOptOnf        = "onf="
-	FormatOptOnt        = "ont="
-	FormatOptSprintf    = "sprf="
-	FormatOptTimeLayout = "tml="
-	FormatOptRotate     = "rotate"
-	FormatOptQuoted     = "quoted"
-	FormatOptQuotedOnt  = "quoted-ont"
-	FormatOptQuotedOnf  = "quoted-onf"
-	FormatOptPadChar    = "pad"
+	FormatOptLen         = "len="
+	FormatOptPad         = "pad="
+	FormatOptOnf         = "onf="
+	FormatOptOnt         = "ont="
+	FormatOptSprintf     = "sprf="
+	FormatOptTimeLayout  = "tml="
+	FormatOptRotate      = "rotate"
+	FormatOptQuoted      = "quoted"
+	FormatOptQuotedOnt   = "quoted-ont"
+	FormatOptQuotedOnf   = "quoted-onf"
+	FormatOptPadChar     = "pad"
+	FormatOptWithTempVar = "with-temp-var"
 
 	FormatTypeTimeLayout = "time-layout"
 	FormatTypeSprintf    = "sprintf"
@@ -238,13 +252,14 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 	const semLogContext = "variable-name::get-opts"
 
 	opts := VariableOpts{
-		Rotate:       false,
-		Quoted:       false,
-		FormatType:   "",
-		Format:       "",
-		MaxLength:    0,
-		PadChar:      "",
-		DefaultValue: "",
+		Rotate:        false,
+		Quoted:        false,
+		CreateTempVar: false,
+		FormatType:    "",
+		Format:        "",
+		MaxLength:     0,
+		PadChar:       "",
+		DefaultValue:  "",
 	}
 
 	if !skipOpts {
@@ -260,6 +275,8 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				opts.Rotate = true
 			case FormatOptQuoted:
 				opts.Quoted = true
+			case FormatOptWithTempVar:
+				opts.CreateTempVar = true
 			case FormatOptQuotedOnt:
 				if isTrue {
 					opts.Quoted = true
