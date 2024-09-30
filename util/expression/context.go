@@ -2,6 +2,7 @@ package expression
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression/funcs"
@@ -354,7 +355,8 @@ func (pvr *Context) resolveVar(_ string, s string) (string, bool) {
 				return pvr.jsonEscape(s, doEscape)
 			}
 		*/
-
+	case varResolver.VariablePrefixGColon:
+		err = errors.New("unsupported g: prefix")
 	default:
 		varValue, _ = os.LookupEnv(variable.Name)
 		/*
@@ -441,6 +443,9 @@ func (pvr *Context) validatePrefix(pfix varResolver.VariablePrefix) (varResolver
 		if pvr.vars != nil {
 			isValid = true
 		}
+
+	case varResolver.VariablePrefixGColon:
+		isValid = true
 
 	case varResolver.VariablePrefixHColon:
 		if pvr.headers != nil {
