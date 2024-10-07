@@ -156,11 +156,10 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	}
 
 	if opts.Quoted {
-		res = fmt.Sprintf("\"%s\"", res)
-	}
-
-	if jsonEscape {
-		res = util.JSONEscape(res)
+		// res = fmt.Sprintf("\"%s\"", res)
+		res = util.JSONEscape(res, true)
+	} else if jsonEscape {
+		res = util.JSONEscape(res, false)
 	}
 
 	return res, nil

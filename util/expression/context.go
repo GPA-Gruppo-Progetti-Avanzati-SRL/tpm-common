@@ -391,7 +391,7 @@ func isJsonPathUnknownKey(err error) bool {
 
 func (pvr *Context) jsonEscape(s string, doEscape bool) string {
 	if doEscape {
-		s = util.JSONEscape(s)
+		s = util.JSONEscape(s, false)
 	}
 	return s
 }

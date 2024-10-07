@@ -166,7 +166,7 @@ func ParseSetClause(src string, clauseDelimiter rune) (map[string]interface{}, e
 			st, propertyValue, err = parseSetClauseHandleState2(tok, &s)
 			if err == nil {
 				if resultMap == nil {
-					resultMap = make(map[string]interface{}, 0)
+					resultMap = make(map[string]interface{})
 				}
 				resultMap[propertyName] = propertyValue
 			}
