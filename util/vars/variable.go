@@ -25,6 +25,7 @@ type VariableOpts struct {
 	Rotate        bool
 	Quoted        bool
 	CreateTempVar bool
+	StrConv       string
 	FormatType    string
 	Format        string
 	MaxLength     int
@@ -110,6 +111,7 @@ func (vr Variable) IsTagPresent(tag string) bool {
 // ToString introduced skipOpts to not interpret unknown properties as sprintf or time layout.
 // unknown opts are deprecated.
 func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (string, error) {
+	const semLogContext = "variable::to-string"
 
 	opts := vr.getOpts(v, skipOpts)
 	if isOnf(v) {
@@ -119,6 +121,22 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	var res string
 	var b []byte
 	var err error
+
+	switch opts.StrConv {
+	case FormatTypeConvAtoi:
+		if s, ok := v.(string); ok {
+			// should handle the default case where is not defined.
+			if s != "null" {
+				v, err = strconv.Atoi(s)
+				if err != nil {
+					log.Error().Err(err).Str("value", s).Str("conv", "atoi").Msg(semLogContext)
+				}
+			}
+		} else {
+			log.Warn().Interface("value", v).Str("conv", "atoi").Msg(semLogContext + " value is not string")
+		}
+	}
+
 	switch opts.FormatType {
 	case FormatTypeTimeLayout:
 		res = v.(time.Time).Format(opts.Format)
@@ -192,9 +210,10 @@ const (
 	FormatOptQuotedOnf   = "quoted-onf"
 	FormatOptPadChar     = "pad"
 	FormatOptWithTempVar = "with-temp-var"
-
+	FormatOptConvAtoi    = "atoi"
 	FormatTypeTimeLayout = "time-layout"
 	FormatTypeSprintf    = "sprintf"
+	FormatTypeConvAtoi   = "strconv-atoi"
 	FormatTypeSprint     = "sprint"
 	FormatTypeMapJson    = "map-json"
 	FormatTypeArrayJson  = "array-json"
@@ -215,6 +234,7 @@ var optsMap = map[string]struct{}{
 	FormatOptQuotedOnf:   struct{}{},
 	FormatOptPadChar:     struct{}{},
 	FormatOptWithTempVar: struct{}{},
+	FormatOptConvAtoi:    struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -256,6 +276,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 		Rotate:        false,
 		Quoted:        false,
 		CreateTempVar: false,
+		StrConv:       "",
 		FormatType:    "",
 		Format:        "",
 		MaxLength:     0,
@@ -323,6 +344,8 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 					value = opts.DefaultValue
 				}
 
+			case FormatOptConvAtoi:
+				opts.StrConv = FormatTypeConvAtoi
 			case FormatOptSprintf:
 				v := strings.TrimPrefix(vr.tags[i], FormatOptSprintf)
 				opts.Format = "%" + v

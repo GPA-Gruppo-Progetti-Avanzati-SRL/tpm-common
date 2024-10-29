@@ -61,6 +61,8 @@ func TestResolveVariableReferences(t *testing.T) {
 		fmt.Sprintf("${not-present,%s} - ${ctx-id}", vars.DeferOption),
 		"${MY_VAR,onf=false,ont=true,quoted-ont}",
 		"${MY_VAR_NOT_EXISTENT,onf=false,ont=true,quoted-ont}",
+		"${num-rapporto,atoi}",
+		"${num-rapporto2,onf=null,atoi}",
 	}
 
 	m := map[string]interface{}{
@@ -70,6 +72,7 @@ func TestResolveVariableReferences(t *testing.T) {
 		"today":        time.Now(),
 		"now":          time.Now,
 		"add-duration": funcs.NowAfter,
+		"num-rapporto": "012345",
 		"check-digit": func(a, s string) string {
 			a = strings.Replace(a, fmt.Sprintf("${%s}", s), "", -1)
 			return fmt.Sprint(len(s))
