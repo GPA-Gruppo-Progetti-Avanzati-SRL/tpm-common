@@ -1,4 +1,4 @@
-package util
+package fileutil
 
 import (
 	"embed"
@@ -16,7 +16,7 @@ type FoundFile struct {
 
 func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindOption) ([]FoundFile, error) {
 
-	cfg := fileFindConfig{fileType: FileTypeAll}
+	cfg := FileFindConfig{fileType: FileTypeAll}
 	for _, o := range opts {
 		o(&cfg)
 	}

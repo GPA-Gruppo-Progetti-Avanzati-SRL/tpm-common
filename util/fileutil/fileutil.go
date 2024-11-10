@@ -1,4 +1,4 @@
-package util
+package fileutil
 
 import (
 	"errors"
@@ -56,7 +56,7 @@ const (
 	FileTypeAll               = "file&dir"
 )
 
-type fileFindConfig struct {
+type FileFindConfig struct {
 	filesIncludeList         []*regexp.Regexp
 	filesIgnoreList          []*regexp.Regexp
 	foldersIncludeList       []*regexp.Regexp
@@ -67,36 +67,36 @@ type fileFindConfig struct {
 	preloadContent           bool // Used currently in the find from embed.FS objects
 }
 
-type FileFindOption func(cfg *fileFindConfig)
+type FileFindOption func(cfg *FileFindConfig)
 
 func WithFindFileType(ft FindFileType) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		cfg.fileType = ft
 	}
 }
 
 func WithFindOptionNavigateSubDirs() FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		cfg.recurse = true
 	}
 }
 
 // WithExcludeRootFolderInNames used only in the processing of embed.FS structures
 func WithFindOptionExcludeRootFolderInNames() FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		cfg.excludeRootFolderInNames = true
 	}
 }
 
 // WithPreloadContent used only in the processing of embed.FS structures
 func WithFindOptionPreloadContent() FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		cfg.preloadContent = true
 	}
 }
 
 func WithFindOptionFoldersIncludeList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.foldersIncludeList = nil
 		} else {
@@ -108,7 +108,7 @@ func WithFindOptionFoldersIncludeList(p []string) FileFindOption {
 }
 
 func WithFindOptionFoldersIgnoreList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.foldersIgnoreList = nil
 		} else {
@@ -120,7 +120,7 @@ func WithFindOptionFoldersIgnoreList(p []string) FileFindOption {
 }
 
 func WithFindOptionFilesIncludeList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.filesIncludeList = nil
 		} else {
@@ -132,7 +132,7 @@ func WithFindOptionFilesIncludeList(p []string) FileFindOption {
 }
 
 func WithFindOptionFilesIgnoreList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.filesIgnoreList = nil
 		} else {
@@ -145,7 +145,7 @@ func WithFindOptionFilesIgnoreList(p []string) FileFindOption {
 
 // WithFindOptionIncludeList For backward compatibility it assigns same stuff to files and folders...
 func WithFindOptionIncludeList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.filesIncludeList = nil
 		} else {
@@ -160,7 +160,7 @@ func WithFindOptionIncludeList(p []string) FileFindOption {
 
 // WithFindOptionIgnoreList For backward compatibility it assigns same stuff to files and folders...
 func WithFindOptionIgnoreList(p []string) FileFindOption {
-	return func(cfg *fileFindConfig) {
+	return func(cfg *FileFindConfig) {
 		if len(p) == 0 {
 			cfg.filesIgnoreList = nil
 		} else {
@@ -173,7 +173,7 @@ func WithFindOptionIgnoreList(p []string) FileFindOption {
 	}
 }
 
-func (cfg *fileFindConfig) isIncluded(n string, includeList []*regexp.Regexp) bool {
+func (cfg *FileFindConfig) isIncluded(n string, includeList []*regexp.Regexp) bool {
 
 	if len(includeList) == 0 {
 		return true
@@ -188,7 +188,7 @@ func (cfg *fileFindConfig) isIncluded(n string, includeList []*regexp.Regexp) bo
 	return false
 }
 
-func (cfg *fileFindConfig) isExcluded(n string, ignoreList []*regexp.Regexp) bool {
+func (cfg *FileFindConfig) isExcluded(n string, ignoreList []*regexp.Regexp) bool {
 
 	if len(ignoreList) == 0 {
 		return false
@@ -203,7 +203,7 @@ func (cfg *fileFindConfig) isExcluded(n string, ignoreList []*regexp.Regexp) boo
 	return false
 }
 
-func (cfg *fileFindConfig) acceptFileName(n string, isDir bool, includeList, ignoreList []*regexp.Regexp) bool {
+func (cfg *FileFindConfig) acceptFileName(n string, isDir bool, includeList, ignoreList []*regexp.Regexp) bool {
 	if !cfg.isExcluded(n, ignoreList) {
 		if cfg.isIncluded(n, includeList) {
 			if (isDir && cfg.fileType != FileTypeFile) || (!isDir && cfg.fileType != FileTypeDir) {
@@ -217,7 +217,7 @@ func (cfg *fileFindConfig) acceptFileName(n string, isDir bool, includeList, ign
 
 func FindFiles(folderPath string, opts ...FileFindOption) ([]string, error) {
 
-	cfg := fileFindConfig{fileType: FileTypeAll}
+	cfg := FileFindConfig{fileType: FileTypeAll}
 	for _, o := range opts {
 		o(&cfg)
 	}

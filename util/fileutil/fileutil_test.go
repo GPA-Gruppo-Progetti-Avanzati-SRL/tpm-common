@@ -1,7 +1,7 @@
-package util_test
+package fileutil_test
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -16,7 +16,7 @@ const (
 func TestFindFiles(t *testing.T) {
 
 	t.Log("list only files with subfolders filtered by pattern")
-	fs, err := util.FindFiles(FolderPath, util.WithFindOptionNavigateSubDirs(), util.WithFindFileType(util.FileTypeFile), util.WithFindOptionIncludeList([]string{SymphonyPattern}))
+	fs, err := fileutil.FindFiles(FolderPath, fileutil.WithFindOptionNavigateSubDirs(), fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIncludeList([]string{SymphonyPattern}))
 	require.NoError(t, err)
 
 	for _, f := range fs {
@@ -24,7 +24,7 @@ func TestFindFiles(t *testing.T) {
 	}
 
 	t.Log("list only directories no subfolders")
-	fs, err = util.FindFiles(FolderPath001, util.WithFindFileType(util.FileTypeDir))
+	fs, err = fileutil.FindFiles(FolderPath001, fileutil.WithFindFileType(fileutil.FileTypeDir))
 	require.NoError(t, err)
 
 	for _, f := range fs {
@@ -32,7 +32,7 @@ func TestFindFiles(t *testing.T) {
 	}
 
 	t.Log("list only files with exclusions")
-	fs, err = util.FindFiles(FolderPath001SendNotif, util.WithFindFileType(util.FileTypeFile), util.WithFindOptionIgnoreList([]string{"^\\."}))
+	fs, err = fileutil.FindFiles(FolderPath001SendNotif, fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIgnoreList([]string{"^\\."}))
 	require.NoError(t, err)
 
 	for _, f := range fs {

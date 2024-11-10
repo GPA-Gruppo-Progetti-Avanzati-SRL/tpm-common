@@ -3,7 +3,7 @@ package ghostscript
 import (
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"io/fs"
 	"io/ioutil"
@@ -374,7 +374,7 @@ func collectOutputFiles(workDir string, filePattern string, minExpected int) ([]
 		for keepLooping {
 			fileNum++
 			fn := filepath.Join(workDir, fmt.Sprintf(filePattern, fileNum))
-			if util.FileExists(fn) {
+			if fileutil.FileExists(fn) {
 				files = append(files, fn)
 			} else {
 				keepLooping = false
@@ -382,7 +382,7 @@ func collectOutputFiles(workDir string, filePattern string, minExpected int) ([]
 		}
 	} else {
 		fn := filepath.Join(workDir, filePattern)
-		if util.FileExists(fn) {
+		if fileutil.FileExists(fn) {
 			files = append(files, fn)
 		}
 	}

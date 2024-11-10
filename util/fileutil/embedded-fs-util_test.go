@@ -1,8 +1,8 @@
-package util_test
+package fileutil_test
 
 import (
 	"embed"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -11,11 +11,11 @@ import (
 var templates embed.FS
 
 func TestFindEmbeddedFiles(t *testing.T) {
-	files, err := util.FindEmbeddedFiles(templates,
+	files, err := fileutil.FindEmbeddedFiles(templates,
 		"embedded-files",
-		util.WithFindOptionNavigateSubDirs(),
-		util.WithFindOptionExcludeRootFolderInNames(),
-		util.WithFindOptionPreloadContent(),
+		fileutil.WithFindOptionNavigateSubDirs(),
+		fileutil.WithFindOptionExcludeRootFolderInNames(),
+		fileutil.WithFindOptionPreloadContent(),
 		// util.WithFindOptionIgnoreList([]string{"\\.txt$"}),                 // exclude text files....
 		// util.WithFindOptionIncludeList([]string{"\\.template", "sub-dir"}), // include template files... the point is that dirs are excluded...
 	)

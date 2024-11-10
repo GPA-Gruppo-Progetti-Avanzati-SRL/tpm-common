@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"os"
 	"regexp"
 	"strings"
@@ -41,7 +42,7 @@ func ResolveConfigValueToString(v string) string {
 
 func ReadFileAndResolveEnvVars(cfgFile string) ([]byte, error) {
 
-	fsz := FileSize(cfgFile)
+	fsz := fileutil.FileSize(cfgFile)
 	if fsz < 0 {
 		return nil, fmt.Errorf("error reading file %s", cfgFile)
 	}
