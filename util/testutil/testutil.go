@@ -2,7 +2,7 @@ package testutil
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -23,7 +23,7 @@ func ReadConfig(fileName string) (StorageAccountKeys, error) {
 
 	var b []byte
 
-	configPath := util.FindFileInClosestDirectory(".", fileName)
+	configPath := fileutil.FindFileInClosestDirectory(".", fileName)
 	if configPath == "" {
 		return stg, fmt.Errorf("cannot find config file of name %s", fileName)
 	}

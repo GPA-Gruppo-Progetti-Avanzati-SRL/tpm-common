@@ -1,7 +1,6 @@
-package util
+package fileutil
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,13 +91,13 @@ func ResolvePath(p string) (string, bool) {
 		return goModPath, okGoMod
 	}
 
-	return p, fileutil.FileExists(p)
+	return p, FileExists(p)
 }
 
 func resolvePathInHomeFolder(home string, p string) (string, bool) {
 	exists := false
 	retp := filepath.Join(home, p)
-	if fileutil.FileExists(retp) {
+	if FileExists(retp) {
 		exists = true
 	}
 
