@@ -19,7 +19,7 @@ func WithWriteOptionCreateFolderIfMissing() WriteOption {
 	}
 }
 
-func WriteFile(fn string, b []byte, writeOpts ...WriteOption) error {
+func WriteFile(fn string, b []byte, fileMode os.FileMode, writeOpts ...WriteOption) error {
 	const semLogContext = "file-util::write-2-file"
 	var err error
 
@@ -32,7 +32,7 @@ func WriteFile(fn string, b []byte, writeOpts ...WriteOption) error {
 	outFolder := filepath.Dir(outFn)
 	if !FileExists(outFolder) {
 		if options.createFolderIfMissing {
-			err = os.MkdirAll(outFolder, os.ModePerm)
+			err = os.MkdirAll(outFolder, fileMode)
 			if err != nil {
 				log.Error().Err(err).Str("folder-name", outFolder).Msg(semLogContext)
 				return err

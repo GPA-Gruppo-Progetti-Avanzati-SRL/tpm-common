@@ -3,6 +3,7 @@ package fileutil_test
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/stretchr/testify/require"
+	"os"
 	"testing"
 )
 
@@ -63,6 +64,6 @@ func TestCopyFolder(t *testing.T) {
 func TestWriteFile(t *testing.T) {
 	fn := "~/test/test-sub-folder-new/test-sub-folder-new.txt"
 
-	err := fileutil.WriteFile(fn, []byte("test-sub-folder-new.txt"), fileutil.WithWriteOptionCreateFolderIfMissing())
+	err := fileutil.WriteFile(fn, []byte("test-sub-folder-new.txt"), os.ModePerm, fileutil.WithWriteOptionCreateFolderIfMissing())
 	require.NoError(t, err)
 }
