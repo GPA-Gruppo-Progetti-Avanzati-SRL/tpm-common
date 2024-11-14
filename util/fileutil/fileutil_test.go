@@ -59,3 +59,10 @@ func TestCopyFolder(t *testing.T) {
 	_, err := fileutil.CopyFolder(dst, src, fileutil.WithCopyOptionCreateIfMissing(), fileutil.WithCopyOptionIncludeSubFolder())
 	require.NoError(t, err)
 }
+
+func TestWriteFile(t *testing.T) {
+	fn := "~/test/test-sub-folder-new/test-sub-folder-new.txt"
+
+	err := fileutil.WriteFile(fn, []byte("test-sub-folder-new.txt"), fileutil.WithWriteOptionCreateFolderIfMissing())
+	require.NoError(t, err)
+}

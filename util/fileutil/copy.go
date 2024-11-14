@@ -53,7 +53,7 @@ func CopyFolder(dst, src string, copyOpts ...CopyOption) (int, error) {
 				return 0, err
 			}
 		} else {
-			err = errors.New("src folder path not found")
+			err = errors.New("dst folder path not found")
 			log.Error().Err(err).Str("file-name", dst).Msg(semLogContext)
 			return 0, err
 		}
