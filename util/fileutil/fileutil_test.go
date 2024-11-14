@@ -6,11 +6,23 @@ import (
 	"testing"
 )
 
+/*
 const (
+
 	SymphonyPattern        = "tpm-symphony-openapi\\.(yml|yaml)"
 	FolderPath             = "/Users/marioa.imperato/projects/tpm/tpm-symphony/examples"
 	FolderPath001          = "/Users/marioa.imperato/projects/tpm/tpm-symphony/examples/example-001"
 	FolderPath001SendNotif = "/Users/marioa.imperato/projects/tpm/tpm-symphony/examples/example-001/spm-send-notification"
+
+)
+*/
+
+const (
+	SymphonyPattern = "tpm-symphony-openapi\\.(yml|yaml)"
+	FolderPath      = "/Users/marioa.imperato/projects/tpm/tpm-common/test"
+	FolderPath001   = "/Users/marioa.imperato/projects/tpm/tpm-common/test/test-sub-folder-1"
+	FolderPath002   = "/Users/marioa.imperato/projects/tpm/tpm-common/test/test-sub-folder-2"
+	//FolderPath001SendNotif = "/Users/marioa.imperato/projects/tpm/tpm-symphony/examples/example-001/spm-send-notification"
 )
 
 func TestFindFiles(t *testing.T) {
@@ -32,11 +44,18 @@ func TestFindFiles(t *testing.T) {
 	}
 
 	t.Log("list only files with exclusions")
-	fs, err = fileutil.FindFiles(FolderPath001SendNotif, fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIgnoreList([]string{"^\\."}))
+	fs, err = fileutil.FindFiles(FolderPath002, fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIgnoreList([]string{"^\\."}))
 	require.NoError(t, err)
 
 	for _, f := range fs {
 		t.Log(f)
 	}
+}
 
+func TestCopyFolder(t *testing.T) {
+	src := "~/test"
+	dst := "~/test/out-copy"
+
+	_, err := fileutil.CopyFolder(dst, src, fileutil.WithCopyOptionCreateIfMissing(), fileutil.WithCopyOptionIncludeSubFolder())
+	require.NoError(t, err)
 }
