@@ -70,11 +70,12 @@ func CopyFolder(dst, src string, copyOpts ...CopyOption) (int, error) {
 		return 0, err
 	}
 
+	numFilesCopied := 0
 	for _, f := range assetFiles {
 		fnDir, fn, err := relPath(src, f)
 		if err != nil {
 			log.Error().Err(err).Str("file-name", f).Msg(semLogContext)
-			return 0, err
+			return numFilesCopied, err
 		}
 
 		destFolder := dst
@@ -85,7 +86,7 @@ func CopyFolder(dst, src string, copyOpts ...CopyOption) (int, error) {
 					err = os.MkdirAll(destFolder, os.ModePerm)
 					if err != nil {
 						log.Error().Err(err).Str("folder-name", destFolder).Msg(semLogContext)
-						return 0, err
+						return numFilesCopied, err
 					}
 				}
 			}
@@ -95,16 +96,18 @@ func CopyFolder(dst, src string, copyOpts ...CopyOption) (int, error) {
 		b, err := os.ReadFile(f)
 		if err != nil {
 			log.Error().Err(err).Str("file-name", dst).Msg(semLogContext)
-			return 0, err
+			return numFilesCopied, err
 		}
 		err = os.WriteFile(destFile, b, fs.ModePerm)
 		if err != nil {
 			log.Error().Err(err).Str("file-name", destFile).Msg(semLogContext)
-			return 0, err
+			return numFilesCopied, err
 		}
+
+		numFilesCopied++
 	}
 
-	return 0, nil
+	return numFilesCopied, nil
 }
 
 func relPath(src, f string) (string, string, error) {
