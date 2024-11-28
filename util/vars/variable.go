@@ -196,6 +196,7 @@ const (
 	VariablePrefixVColon              VariablePrefix = "v:"
 	VariablePrefixGColon              VariablePrefix = "g:"
 	VariablePrefixHColon              VariablePrefix = "h:"
+	VariablePrefixPColon              VariablePrefix = "p:"
 	VariablePrefixQColon              VariablePrefix = "q:"
 	VariablePrefixDollarSquareBracket VariablePrefix = "$["
 
@@ -257,7 +258,15 @@ func resolveFormatOption(s string) string {
 // knownPrefixes VariablePrefixDollarDot and VariablePrefixDollar jsonpath expressions are of type $. to select properties or simply $ to match the whole object.
 // it's crucial that in the knownPrefixes array the less specific VariablePrefixDollar be put after the more specific VariablePrefixDollarDot in order not to have a sort of catch all
 // effect
-var knownPrefixes = []VariablePrefix{VariablePrefixEnv, VariablePrefixDollarDot, VariablePrefixVColon, VariablePrefixGColon, VariablePrefixHColon, VariablePrefixQColon, VariablePrefixDollarSquareBracket}
+var knownPrefixes = []VariablePrefix{
+	VariablePrefixEnv,
+	VariablePrefixDollarDot,
+	VariablePrefixVColon,
+	VariablePrefixGColon,
+	VariablePrefixHColon,
+	VariablePrefixQColon,
+	VariablePrefixPColon,
+	VariablePrefixDollarSquareBracket}
 
 func getPrefix(s string, defaultPrefix VariablePrefix) VariablePrefix {
 	for _, pfix := range knownPrefixes {
