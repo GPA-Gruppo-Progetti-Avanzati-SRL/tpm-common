@@ -81,6 +81,27 @@ func Pad2Length(s string, maxLength int, padChar string) (string, bool) {
 	return s, padded
 }
 
+func TrimPrefixCharacters(s string, c string) string {
+	if s == "" || c == "" {
+		return s
+	}
+
+	lastZeroNdx := -1
+	for i := 0; i < len(s); i++ {
+		if s[i] == c[0] {
+			lastZeroNdx = i
+		} else {
+			break
+		}
+	}
+
+	if lastZeroNdx >= 0 {
+		return s[lastZeroNdx+1:]
+	}
+
+	return s
+}
+
 func HasPrefixWithWildCard(s string, prefix string, wildCh byte) bool {
 
 	if len(s) < len(prefix) {

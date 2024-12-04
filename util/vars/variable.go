@@ -31,6 +31,7 @@ type VariableOpts struct {
 	MaxLength     int
 	PadChar       string
 	DefaultValue  interface{}
+	UnPadChar     string
 }
 
 type Variable struct {
@@ -122,6 +123,17 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	var b []byte
 	var err error
 
+	if opts.UnPadChar != "" {
+		if s, ok := v.(string); ok {
+			// should handle the default case where is not defined.
+			if s != "null" {
+				v = util.TrimPrefixCharacters(s, opts.UnPadChar)
+			}
+		} else {
+			log.Warn().Interface("value", v).Str("conv", "un-pad").Msg(semLogContext + " value is not string")
+		}
+	}
+
 	switch opts.StrConv {
 	case FormatTypeConvAtoi:
 		if s, ok := v.(string); ok {
@@ -202,6 +214,7 @@ const (
 
 	FormatOptLen         = "len="
 	FormatOptPad         = "pad="
+	FormatOptUnPad       = "unpad="
 	FormatOptOnf         = "onf="
 	FormatOptOnt         = "ont="
 	FormatOptSprintf     = "sprf="
@@ -237,6 +250,7 @@ var optsMap = map[string]struct{}{
 	FormatOptPadChar:     struct{}{},
 	FormatOptWithTempVar: struct{}{},
 	FormatOptConvAtoi:    struct{}{},
+	FormatOptUnPad:       struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -292,6 +306,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 		MaxLength:     0,
 		PadChar:       "",
 		DefaultValue:  "",
+		UnPadChar:     "",
 	}
 
 	if !skipOpts {
@@ -336,6 +351,17 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 					log.Warn().Msg(semLogContext + " no pad char provided")
 				default:
 					opts.PadChar = v[0:1]
+				}
+
+			case FormatOptUnPad:
+				v := strings.TrimPrefix(vr.tags[i], FormatOptUnPad)
+				switch v {
+				case "blnk":
+					opts.UnPadChar = " "
+				case "":
+					log.Warn().Msg(semLogContext + " no pad char provided")
+				default:
+					opts.UnPadChar = v[0:1]
 				}
 
 			case FormatOptOnf:

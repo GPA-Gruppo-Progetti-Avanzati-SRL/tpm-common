@@ -201,6 +201,17 @@ func TestStrings(t *testing.T) {
 		fmt.Printf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "underscore: strings should match")
 	}
+
+	s = []InputWanted{
+		{input: "000034036586", wanted: "34036586"},
+		{input: "000", wanted: ""},
+	}
+
+	for _, iw := range s {
+		modS = util.TrimPrefixCharacters(iw.input, "0")
+		fmt.Printf("%s --> %s\n", iw.input, modS)
+		a.Equal(iw.wanted, modS, "clear prefix")
+	}
 }
 
 func TestStrings2(t *testing.T) {
