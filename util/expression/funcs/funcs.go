@@ -8,11 +8,11 @@ import (
 
 func Builtins() map[string]interface{} {
 	builtins := make(map[string]interface{})
-	builtins["isDef"] = IsDefined
-	builtins["_now"] = func(fmt string) string {
-		v, _ := Now(fmt)
-		return v
-	}
+	// builtins["isDef"] = IsDefined
+	//builtins["_now"] = func(fmt string) string {
+	//	v, _ := Now(fmt)
+	//	return v
+	//}
 
 	builtins["_nowAfter"] = func(dur, fmt string) string {
 		v, _ := NowAfter(dur, fmt)
@@ -24,6 +24,29 @@ func Builtins() map[string]interface{} {
 		return v
 	}
 
+	builtins["now"] = Now
+	builtins["isDate"] = IsDate
+	builtins["parseDate"] = ParseDate
+	builtins["parseAndFormatDate"] = ParseAndFmtDate
+	builtins["dateDiff"] = DateDiff
+	builtins["printf"] = Printf
+	builtins["amtConv"] = AmtConv
+	builtins["amtCmp"] = AmtCmp
+	builtins["amtAdd"] = AmtAdd
+	builtins["amtDiff"] = AmtDiff
+	builtins["padLeft"] = PadLeft
+	builtins["left"] = Left
+	builtins["right"] = Right
+	builtins["len"] = Len
+	builtins["substr"] = Substr
+	builtins["isDef"] = IsDefined
+	builtins["b64"] = Base64
+	builtins["uuid"] = Uuid
+	builtins["regexMatch"] = RegexMatch
+	builtins["regexExtractFirst"] = RegexExtractFirst
+	builtins["lenJsonArray"] = LenJsonArray
+	builtins["isJsonArray"] = IsJsonArray
+	builtins["stringIn"] = StringIn
 	return builtins
 }
 
@@ -34,7 +57,7 @@ func GValFunctions() []gval.Language {
 			return NowAfter(dur, fmt)
 		}),
 		gval.Function("_now", func(fmt string) (string, error) {
-			return Now(fmt)
+			return Now(fmt), nil
 		}),
 		gval.Function("_pad", func(s string, len int) (string, error) {
 			v, _ := util.Pad2Length(s, len, "0")
@@ -65,6 +88,10 @@ func IsExpression(e string) (string, bool) {
 		return e, false
 	}
 
+	if strings.HasPrefix(e, ":") {
+		return strings.TrimPrefix(e, ":"), true
+	}
+
 	if strings.HasPrefix(e, "e:") {
 		return strings.TrimPrefix(e, "e:"), true
 	}
@@ -80,8 +107,4 @@ func IsExpression(e string) (string, bool) {
 	}
 
 	return e, false
-}
-
-func IsDefined(variable interface{}) bool {
-	return variable != nil
 }

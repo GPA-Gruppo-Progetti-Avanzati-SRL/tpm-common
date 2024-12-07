@@ -1,0 +1,1 @@
+sample useless content of file2.txt

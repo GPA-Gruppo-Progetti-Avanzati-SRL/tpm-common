@@ -287,7 +287,7 @@ func (pvr *Context) BoolEvalOne(v string) (bool, error) {
 	}
 	*/
 
-	exprValue, err := gval.Evaluate(v, pvr)
+	exprValue, err := gval.Evaluate(v, pvr.vars, pvr.gvals...)
 	if err != nil {
 		log.Error().Err(err).Str("expr", v).Msg(semLogContext)
 		return false, err
