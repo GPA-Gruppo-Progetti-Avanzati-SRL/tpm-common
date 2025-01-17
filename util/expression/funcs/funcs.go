@@ -25,6 +25,7 @@ func Builtins() map[string]interface{} {
 	}
 
 	builtins["now"] = Now
+	builtins["age"] = Age
 	builtins["isDate"] = IsDate
 	builtins["parseDate"] = ParseDate
 	builtins["parseAndFormatDate"] = ParseAndFmtDate

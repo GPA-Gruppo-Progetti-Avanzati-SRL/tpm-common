@@ -4,7 +4,7 @@ import (
 	"embed"
 	"io/fs"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -24,7 +24,7 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 	var files []FoundFile
 	if cfg.recurse {
 		err := walkEmbeddedFS(embeddedFS, folderPath,
-			func(path string, info fs.FileInfo, err error) error {
+			func(fPath string, info fs.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
@@ -39,19 +39,19 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 
 					var data []byte
 					if cfg.preloadContent && !info.IsDir() {
-						data, err = embeddedFS.ReadFile(filepath.Join(path, info.Name()))
+						data, err = embeddedFS.ReadFile( /* file */ path.Join(fPath, info.Name()))
 					}
 
 					if cfg.excludeRootFolderInNames {
-						ndx := strings.Index(path, "/")
+						ndx := strings.Index(fPath, "/")
 						if ndx >= 0 {
-							path = path[ndx+1:]
+							fPath = fPath[ndx+1:]
 						} else {
-							path = ""
+							fPath = ""
 						}
 					}
 
-					files = append(files, FoundFile{Path: path, Info: info, Content: data})
+					files = append(files, FoundFile{Path: fPath, Info: info, Content: data})
 				}
 
 				return nil
@@ -86,7 +86,7 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 		if cfg.acceptFileName(fi.Name(), fi.IsDir(), includeList, ignoreList) {
 			var data []byte
 			if cfg.preloadContent && !info.IsDir() {
-				data, err = embeddedFS.ReadFile(filepath.Join(folderPath, info.Name()))
+				data, err = embeddedFS.ReadFile( /* file */ path.Join(folderPath, info.Name()))
 			}
 			files = append(files, FoundFile{Path: p, Info: info, Content: data})
 		}
@@ -95,10 +95,10 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 	return files, nil
 }
 
-type EmbeddedFSVisitor func(path string, info fs.FileInfo, err error) error
+type EmbeddedFSVisitor func(fPath string, info fs.FileInfo, err error) error
 
-func walkEmbeddedFS(embedFS embed.FS, path string, visitor EmbeddedFSVisitor) error {
-	entries, err := embedFS.ReadDir(path)
+func walkEmbeddedFS(embedFS embed.FS, fPath string, visitor EmbeddedFSVisitor) error {
+	entries, err := embedFS.ReadDir(fPath)
 	if err != nil {
 		return err
 	}
@@ -107,10 +107,10 @@ func walkEmbeddedFS(embedFS embed.FS, path string, visitor EmbeddedFSVisitor) er
 	for _, e := range entries {
 
 		info, err = e.Info()
-		err = visitor(path, info, err)
+		err = visitor(fPath, info, err)
 
 		if e.IsDir() {
-			fn := filepath.Join(path, e.Name())
+			fn := /* file */ path.Join(fPath, e.Name())
 			err = walkEmbeddedFS(embedFS, fn, visitor)
 			if err != nil {
 				return err
