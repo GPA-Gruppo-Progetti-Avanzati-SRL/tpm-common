@@ -21,14 +21,18 @@ func (vrt VariableReferenceType) ToVar(n string) string {
 
 	var sb strings.Builder
 	switch vrt {
-	case PercentVariableReference:
-		sb.WriteString(PercentVariableReferencePrefix)
+	case WritersideVariableReference:
+		sb.WriteString(WritersideVariableReferencePrefix)
 		sb.WriteString(n)
-		sb.WriteString(PercentVariableReferenceSuffix)
-	case DashVariableReference:
-		sb.WriteString(DashVariableReferencePrefix)
+		sb.WriteString(WritersideVariableReferenceSuffix)
+	case ScriptletPercentVariableReference:
+		sb.WriteString(ScriptletPercentVariableReferencePrefix)
 		sb.WriteString(n)
-		sb.WriteString(DashVariableReferenceSuffix)
+		sb.WriteString(ScriptletPercentVariableReferenceSuffix)
+	case ScriptletDashVariableReference:
+		sb.WriteString(ScriptletDashVariableReferencePrefix)
+		sb.WriteString(n)
+		sb.WriteString(ScriptletDashVariableReferenceSuffix)
 	case DollarVariableReference:
 		sb.WriteString(DollarVariableReferencePrefix)
 		sb.WriteString(n)
@@ -46,13 +50,17 @@ const (
 	AnyVariableReference  VariableReferenceType = "any"
 	nullVariableReference VariableReferenceType = "null"
 
-	PercentVariableReference       VariableReferenceType = "percent"
-	PercentVariableReferencePrefix string                = "<%="
-	PercentVariableReferenceSuffix string                = "%>"
+	WritersideVariableReference       VariableReferenceType = "wrsd"
+	WritersideVariableReferencePrefix string                = "%"
+	WritersideVariableReferenceSuffix string                = "%"
 
-	DashVariableReference       VariableReferenceType = "dash"
-	DashVariableReferencePrefix string                = "<#="
-	DashVariableReferenceSuffix string                = "#>"
+	ScriptletPercentVariableReference       VariableReferenceType = "percent"
+	ScriptletPercentVariableReferencePrefix string                = "<%="
+	ScriptletPercentVariableReferenceSuffix string                = "%>"
+
+	ScriptletDashVariableReference       VariableReferenceType = "dash"
+	ScriptletDashVariableReferencePrefix string                = "<#="
+	ScriptletDashVariableReferenceSuffix string                = "#>"
 
 	DollarVariableReference       VariableReferenceType = "dollar"
 	DollarVariableReferencePrefix string                = "${"
@@ -69,8 +77,11 @@ const (
 var VariableReferencePatternRegexp = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)([a-zA-Z][\\:a-zA-Z0-9_\\-,]*)([%#]>|})")
 
 // VariableReferencePatternRegexpExt sort of extended mode with names of vars starting with letters or the dollar sign followed by more possible chars.
-// Tried to include symbols from https://goessner.net/articles/JsonPath/
+// V1 - Tried to include symbols from https://goessner.net/articles/JsonPath/
 var VariableReferencePatternRegexpExt = regexp.MustCompile("((?:<[%#]=)|(?:\\$\\{)|{)(!?[$a-zA-Z][:,=@'$\\.\\\"\\*\\[\\]a-zA-Z0-9_\\-]*)([%#]>|})")
+
+// PercentVariableReferencePatternRegexp to include %pattern%. It's need separated from others and use for writerside type of variables.
+var PercentVariableReferencePatternRegexp = regexp.MustCompile("(%)([$a-zA-Z][:,=@'$\\.\\\"\\*\\[\\]a-zA-Z0-9_\\-]*)(%)")
 
 type PrefixSuffixTypeMapping struct {
 	Type   VariableReferenceType
@@ -79,11 +90,14 @@ type PrefixSuffixTypeMapping struct {
 }
 
 var PrefixMap = map[string]PrefixSuffixTypeMapping{
-	PercentVariableReferencePrefix: {
-		PercentVariableReference, PercentVariableReferencePrefix, PercentVariableReferenceSuffix,
+	WritersideVariableReferencePrefix: {
+		WritersideVariableReference, WritersideVariableReferencePrefix, WritersideVariableReferenceSuffix,
 	},
-	DashVariableReferencePrefix: {
-		DashVariableReference, DashVariableReferencePrefix, DashVariableReferenceSuffix,
+	ScriptletPercentVariableReferencePrefix: {
+		ScriptletPercentVariableReference, ScriptletPercentVariableReferencePrefix, ScriptletPercentVariableReferenceSuffix,
+	},
+	ScriptletDashVariableReferencePrefix: {
+		ScriptletDashVariableReference, ScriptletDashVariableReferencePrefix, ScriptletDashVariableReferenceSuffix,
 	},
 	DollarVariableReferencePrefix: {
 		DollarVariableReference, DollarVariableReferencePrefix, DollarVariableReferenceSuffix,
@@ -94,7 +108,12 @@ var PrefixMap = map[string]PrefixSuffixTypeMapping{
 }
 
 func FindVariableReferences(s string, ofType VariableReferenceType) ([]VariableReference, error) {
-	matches := VariableReferencePatternRegexpExt.FindAllSubmatch([]byte(s), -1)
+
+	rxp := VariableReferencePatternRegexpExt
+	if ofType == WritersideVariableReference {
+		rxp = PercentVariableReferencePatternRegexp
+	}
+	matches := rxp.FindAllSubmatch([]byte(s), -1)
 
 	var resp []VariableReference
 	for _, m := range matches {

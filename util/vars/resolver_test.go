@@ -62,7 +62,8 @@ func TestResolveVariableReferences(t *testing.T) {
 		"${MY_VAR,onf=false,ont=true,quoted-ont}",
 		"${MY_VAR_NOT_EXISTENT,onf=false,ont=true,quoted-ont}",
 		"${num-rapporto,atoi}",
-		"${num-rapporto2,onf=null,atoi}",
+		"${num-rapporto,onf=null,atoi}",
+		"%now,2006-01-02%",
 	}
 
 	m := map[string]interface{}{
@@ -79,9 +80,13 @@ func TestResolveVariableReferences(t *testing.T) {
 		},
 	}
 
-	for _, s := range sarr {
+	for i, s := range sarr {
 		s1, deferred, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
-		require.NoError(t, err)
-		t.Logf("string %s deferred(%t) resolved to %s", s, deferred, s1)
+		require.NoError(t, err, "test: %d - %s", i, s)
+		t.Logf("[%d] string %s deferred(%t) resolved to %s", i, s, deferred, s1)
+
+		s1, deferred, err = vars.ResolveVariables(s, vars.WritersideVariableReference, vars.SimpleMapResolver(m), false)
+		require.NoError(t, err, "test: %d - %s", i, s)
+		t.Logf("[%d] string %s deferred(%t) resolved to %s", i, s, deferred, s1)
 	}
 }
