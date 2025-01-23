@@ -102,6 +102,26 @@ func TrimPrefixCharacters(s string, c string) string {
 	return s
 }
 
+func TrimSuffixCharacters(s string, c string) string {
+	if s == "" || c == "" {
+		return s
+	}
+
+	lastZeroNdx := -1
+	for i := len(s) - 1; i >= 0; i-- {
+		if s[i] == c[0] {
+			lastZeroNdx = i
+		} else {
+			break
+		}
+	}
+
+	if lastZeroNdx >= 0 {
+		return s[:lastZeroNdx]
+	}
+	return s
+}
+
 func HasPrefixWithWildCard(s string, prefix string, wildCh byte) bool {
 
 	if len(s) < len(prefix) {

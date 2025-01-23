@@ -212,6 +212,18 @@ func TestStrings(t *testing.T) {
 		fmt.Printf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear prefix")
 	}
+
+	s = []InputWanted{
+		{input: "03403658600", wanted: "034036586"},
+		{input: "000", wanted: ""},
+	}
+
+	for _, iw := range s {
+		modS = util.TrimSuffixCharacters(iw.input, "0")
+		fmt.Printf("%s --> %s\n", iw.input, modS)
+		a.Equal(iw.wanted, modS, "clear suffix")
+	}
+
 }
 
 func TestStrings2(t *testing.T) {
