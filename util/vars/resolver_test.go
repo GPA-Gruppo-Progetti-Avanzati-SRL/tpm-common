@@ -90,3 +90,29 @@ func TestResolveVariableReferences(t *testing.T) {
 		t.Logf("[%d] string %s deferred(%t) resolved to %s", i, s, deferred, s1)
 	}
 }
+
+func TestVariableValueFormat(t *testing.T) {
+
+	var tests = []struct {
+		input  string
+		value  string
+		wanted string
+	}{
+		{
+			input:  "{$.whatever}",
+			value:  "ALM3067 ",
+			wanted: "ALM3067",
+		},
+	}
+
+	for _, s := range tests {
+		v, err := vars.ParseVariable(s.input)
+		require.NoError(t, err)
+
+		res, err := v.ToString(s.value, true, false)
+		require.NoError(t, err)
+
+		require.Equal(t, s.wanted, res)
+	}
+
+}

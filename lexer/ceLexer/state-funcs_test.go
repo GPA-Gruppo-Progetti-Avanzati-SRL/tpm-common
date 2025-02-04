@@ -96,6 +96,14 @@ func Test_BuiltinStateFuncs(t *testing.T) {
 				{ceLexer.CurlyRParenPunctuationToken, "}"},
 			},
 		},
+		{
+			text: `typ == "type-2"`,
+			expectedTokens: []testExpectedToken{
+				{ceLexer.IdentifierToken, "typ"},
+				{ceLexer.EqualToOperatorToken, "=="},
+				{ceLexer.StringToken, "\"type-2\""},
+			},
+		},
 	}
 
 	for i, tc := range cases {

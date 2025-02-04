@@ -25,6 +25,7 @@ type VariableOpts struct {
 	Rotate        bool
 	Quoted        bool
 	CreateTempVar bool
+	TrimSpace     bool
 	StrConv       string
 	FormatType    string
 	Format        string
@@ -122,6 +123,14 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	var res string
 	var b []byte
 	var err error
+
+	if opts.TrimSpace {
+		if s, ok := v.(string); ok {
+			v = strings.TrimSpace(s)
+		} else {
+			log.Warn().Str("vt", fmt.Sprintf("%T", v)).Str("v", fmt.Sprintf("%v", v)).Msg(semLogContext + " trim-space option on not string value")
+		}
+	}
 
 	if opts.UnPadChar != "" {
 		if s, ok := v.(string); ok {
@@ -226,6 +235,8 @@ const (
 	FormatOptPadChar     = "pad"
 	FormatOptWithTempVar = "with-temp-var"
 	FormatOptConvAtoi    = "atoi"
+	FormatOptTrimSpace   = "trim-space"
+
 	FormatTypeTimeLayout = "time-layout"
 	FormatTypeSprintf    = "sprintf"
 	FormatTypeConvAtoi   = "strconv-atoi"
@@ -251,6 +262,7 @@ var optsMap = map[string]struct{}{
 	FormatOptWithTempVar: struct{}{},
 	FormatOptConvAtoi:    struct{}{},
 	FormatOptUnPad:       struct{}{},
+	FormatOptTrimSpace:   struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -307,6 +319,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 		PadChar:       "",
 		DefaultValue:  "",
 		UnPadChar:     "",
+		TrimSpace:     false,
 	}
 
 	if !skipOpts {
@@ -320,6 +333,8 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 			switch formatOption {
 			case FormatOptRotate:
 				opts.Rotate = true
+			case FormatOptTrimSpace:
+				opts.TrimSpace = true
 			case FormatOptQuoted:
 				opts.Quoted = true
 			case FormatOptWithTempVar:
