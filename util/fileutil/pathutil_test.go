@@ -3,6 +3,7 @@ package fileutil_test
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/stretchr/testify/require"
+	"path/filepath"
 	"testing"
 )
 
@@ -41,5 +42,40 @@ func TestPathUtil(t *testing.T) {
 		rp, ok := fileutil.ResolvePath(p)
 		require.NotEmpty(t, rp, "could not find ", p)
 		t.Log(p, " resolved -->", rp, ok)
+	}
+}
+
+func TestPathRel(t *testing.T) {
+	s1arr := []string{
+		"docs/ia/arricchimenti",
+		"docs/ia/arricchimenti/mongo-db",
+		"docs/ia/arricchimenti/pipeline-listini",
+		"docs/ia/arricchimenti/pipeline-tana",
+		"docs/ia/arricchimenti/pipeline-tcol",
+		"docs/ia/arricchimenti/pipeline-trap",
+		"docs/ia/ce",
+		"docs/ia/lm",
+		"docs/ia/lm/simulazione",
+		"docs/ia/lm/sottoscrizione-old",
+	}
+
+	s2arr := []string{
+		"docs/ia/arricchimenti",
+		"docs/ia/arricchimenti/mongo-db",
+		"docs/ia/arricchimenti/pipeline-listini",
+		"docs/ia",
+		"docs/ia/ce",
+		"docs/ia/lm",
+		"docs/ia/lm/simulazione",
+	}
+
+	for i, p := range s2arr {
+		t.Logf("[%d] path: %s", i, p)
+		for j, nodeLoc := range s1arr {
+			rel, err := filepath.Rel(nodeLoc, p)
+			require.NoError(t, err)
+			t.Logf("[%d] node-loc: %s, rel: %s", j, nodeLoc, rel)
+		}
+
 	}
 }

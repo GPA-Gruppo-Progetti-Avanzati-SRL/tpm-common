@@ -64,6 +64,7 @@ type FileFindConfig struct {
 	recurse                  bool
 	fileType                 FindFileType
 	excludeRootFolderInNames bool // Used currently in the find from embed.FS objects
+	trimRootFolderFromNames  bool // added in substitution of excludeRootFolderInNames that think should be deprecated.
 	preloadContent           bool // Used currently in the find from embed.FS objects
 }
 
@@ -81,14 +82,21 @@ func WithFindOptionNavigateSubDirs() FileFindOption {
 	}
 }
 
-// WithExcludeRootFolderInNames used only in the processing of embed.FS structures
+// WithFindOptionExcludeRootFolderInNames used only in the processing of embed.FS structures
 func WithFindOptionExcludeRootFolderInNames() FileFindOption {
 	return func(cfg *FileFindConfig) {
 		cfg.excludeRootFolderInNames = true
 	}
 }
 
-// WithPreloadContent used only in the processing of embed.FS structures
+// WithFindOptionTrimRootFolderFromNames might replace the WithFindOptionExcludeRootFolderInNames.
+func WithFindOptionTrimRootFolderFromNames() FileFindOption {
+	return func(cfg *FileFindConfig) {
+		cfg.trimRootFolderFromNames = true
+	}
+}
+
+// WithFindOptionPreloadContent used only in the processing of embed.FS structures
 func WithFindOptionPreloadContent() FileFindOption {
 	return func(cfg *FileFindConfig) {
 		cfg.preloadContent = true

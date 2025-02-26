@@ -42,6 +42,12 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 						data, err = embeddedFS.ReadFile( /* file */ path.Join(fPath, info.Name()))
 					}
 
+					// this option in principle should replace the excludeRootFolderInNames.
+					// the other is still there for backward compatibility
+					if cfg.trimRootFolderFromNames {
+						fPath = strings.TrimPrefix(fPath, folderPath)
+					}
+
 					if cfg.excludeRootFolderInNames {
 						ndx := strings.Index(fPath, "/")
 						if ndx >= 0 {
