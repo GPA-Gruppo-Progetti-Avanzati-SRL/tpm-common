@@ -80,6 +80,43 @@ func (r Group) FindCollectorById(id string) Metric {
 	return Metric{}
 }
 
+type CollectorWithLabels struct {
+	id        string
+	typ       string
+	name      string
+	collector prometheus.Collector
+	labels    prometheus.Labels
+}
+
+func (cl *CollectorWithLabels) SetMetric(v float64) {
+	switch cl.typ {
+	case MetricTypeCounter:
+		cnter := cl.collector.(*prometheus.CounterVec)
+		cnter.With(cl.labels).Add(v)
+	case MetricTypeGauge:
+		gauger := cl.collector.(*prometheus.GaugeVec)
+		gauger.With(cl.labels).Set(v)
+	case MetricTypeHistogram:
+		hist := cl.collector.(*prometheus.HistogramVec)
+		hist.With(cl.labels).Observe(v)
+	}
+}
+
+func (r Group) CollectorByIdWithLabels(id string, labels prometheus.Labels) (CollectorWithLabels, error) {
+	if c := r.FindCollectorById(id); c.Type != "" {
+		labels = fixLabels(c.Labels, labels)
+		return CollectorWithLabels{
+			id:        id,
+			typ:       c.Type,
+			name:      c.Name,
+			collector: c.Collector,
+			labels:    labels,
+		}, nil
+	}
+
+	return CollectorWithLabels{}, errors.New("cannot find collector by id")
+}
+
 /*
 func (r Group) SetMetricValueByName(n string, v float64, labels prometheus.Labels) error {
 	if c := r.FindCollectorByName(n); c.Type != "" {
