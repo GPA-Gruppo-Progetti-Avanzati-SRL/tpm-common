@@ -2,6 +2,35 @@ package util
 
 import "fmt"
 
+import (
+	"errors"
+	"github.com/rs/zerolog/log"
+	"math/rand/v2"
+)
+
+type ErrorRandomizer interface {
+	GenerateRandomError() error
+}
+
+type ErrorRandomizerFunc func() error
+
+func (f ErrorRandomizerFunc) GenerateRandomError() error {
+	return f()
+}
+
+func NewErrorRandomizer(s int, p int) ErrorRandomizerFunc {
+	return func() error {
+		const semLogContext = "kafka-sink-stage-queue::get-random-error"
+
+		if rand.IntN(s) < p {
+			log.Warn().Int("with-random-error", p).Int("scale", s).Msg(semLogContext)
+			return errors.New("sink-stage queue random error")
+		}
+
+		return nil
+	}
+}
+
 type ErrorWithCode struct {
 	Rc  string
 	Err error
