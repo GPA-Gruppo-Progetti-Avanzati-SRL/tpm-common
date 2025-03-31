@@ -1,6 +1,10 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 import (
 	"errors"
@@ -18,17 +22,54 @@ func (f ErrorRandomizerFunc) GenerateRandomError() error {
 	return f()
 }
 
-func NewErrorRandomizer(s int, p int) ErrorRandomizerFunc {
+func NewErrorRandomizer(p string) (ErrorRandomizerFunc, error) {
+
+	if len(p) == 0 || p == "0" {
+		return nil, nil
+	}
+
+	if len(p) < 3 {
+		return nil, errors.New("invalid randomizer format: form is d+/(c|d|k|m)")
+	}
+
+	unit := strings.ToLower(p[len(p)-2:])
+	value, err := strconv.Atoi(p[0 : len(p)-2])
+	if err != nil {
+		return nil, err
+	}
+
+	if value <= 0 {
+		return nil, nil
+	}
+
+	var scale int
+	switch unit {
+	case "/d":
+		scale = 10
+	case "/c":
+		scale = 100
+	case "/k":
+		scale = 1000
+	case "/m":
+		scale = 10000
+	default:
+		return nil, errors.New("invalid randomizer unit: " + unit + ", supported units: c, d, k, m")
+	}
+
+	if value >= scale {
+		return nil, errors.New("invalid randomizer value " + p)
+	}
+
 	return func() error {
 		const semLogContext = "kafka-sink-stage-queue::get-random-error"
 
-		if rand.IntN(s) < p {
-			log.Warn().Int("with-random-error", p).Int("scale", s).Msg(semLogContext)
+		if rand.IntN(scale) < value {
+			log.Warn().Str("with-random-error", p).Msg(semLogContext)
 			return errors.New("sink-stage queue random error")
 		}
 
 		return nil
-	}
+	}, nil
 }
 
 type ErrorWithCode struct {
