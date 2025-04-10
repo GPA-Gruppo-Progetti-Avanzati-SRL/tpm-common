@@ -274,7 +274,7 @@ func resolveFormatOption(s string) string {
 
 	_, ok := optsMap[s]
 	if !ok {
-		log.Warn().Str("opt", s).Msg(semLogContext + " format option not found")
+		log.Info().Str("opt", s).Msg(semLogContext + " format option not found")
 		return ""
 	}
 
