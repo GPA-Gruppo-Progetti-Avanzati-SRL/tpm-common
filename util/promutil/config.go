@@ -1,7 +1,9 @@
 package promutil
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog/log"
 )
 
 const DefaultMetricsDurationBucketsTypeLinear = "linear"
@@ -146,6 +148,31 @@ type MetricGroupConfig struct {
 	Namespace  string         `yaml:"namespace" mapstructure:"namespace" json:"namespace"`
 	Subsystem  string         `yaml:"subsystem" mapstructure:"subsystem" json:"subsystem"`
 	Collectors []MetricConfig `yaml:"collectors" mapstructure:"collectors" json:"collectors"`
+}
+
+func (c MetricGroupConfig) Merge(another MetricGroupConfig) MetricGroupConfig {
+	const semLogContext = "metrics-group-config::merge"
+	log.Info().Str("name", c.GroupId).Str("with", another.GroupId).Msg(semLogContext)
+
+	c.Namespace = util.StringCoalesce(another.Namespace, c.Namespace)
+	c.Subsystem = util.StringCoalesce(another.Subsystem, c.Subsystem)
+	for _, def := range another.Collectors {
+		targetCollectorNdx := -1
+		for i, l := range c.Collectors {
+			if l.Id == def.Id {
+				targetCollectorNdx = i
+				break
+			}
+		}
+
+		if targetCollectorNdx == -1 {
+			c.Collectors = append(c.Collectors, def)
+		} else {
+			c.Collectors[targetCollectorNdx] = def
+		}
+	}
+
+	return c
 }
 
 type MetricConfig struct {

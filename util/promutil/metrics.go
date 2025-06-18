@@ -1,10 +1,13 @@
 package promutil
 
 import (
+	"embed"
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v2"
 	"strings"
 )
 
@@ -12,14 +15,74 @@ type Group []Metric
 
 var registry map[string]Group
 
-func InitRegistry(cfg map[string]MetricGroupConfig) (map[string]Group, error) {
+func ReadEmbeddedMetricGroupConfig(embeddedDirName string, embeddedConfigs embed.FS) (map[string]MetricGroupConfig, error) {
+	const semLogContext = "metrics::read-embedded-metric-group-config"
+
+	embeddeds, err := fileutil.FindEmbeddedFiles(embeddedConfigs, embeddedDirName, fileutil.WithFindOptionPreloadContent())
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	var groupCfg map[string]MetricGroupConfig
+	for _, ef := range embeddeds {
+		var mcfg MetricGroupConfig
+		err = yaml.Unmarshal(ef.Content, &mcfg)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
+
+		log.Trace().Str("path", ef.Path).Interface("name", ef.Info.Name()).Int64("size", ef.Info.Size()).Msg(semLogContext)
+		gId := strings.TrimSuffix(ef.Info.Name(), ".yml")
+		gId = strings.TrimSuffix(gId, ".yaml")
+		mcfg.GroupId = gId
+		if groupCfg == nil {
+			groupCfg = make(map[string]MetricGroupConfig)
+		}
+		groupCfg[gId] = mcfg
+	}
+
+	return groupCfg, nil
+}
+
+func InitRegistry(cfgs ...map[string]MetricGroupConfig) (map[string]Group, error) {
 	const semLogContext = "metrics::init-registry"
 
-	if len(cfg) > 0 {
+	mergedGroupCfg := make(map[string]MetricGroupConfig)
+	for _, cfg := range cfgs {
+		for gId, g := range cfg {
+			// Forzo la valorizzazione che puo' non essere presente nell'oggetto (ma solo come chiave della mappa
+			if g.GroupId == "" {
+				g.GroupId = gId
+			}
+			if gc, ok := mergedGroupCfg[gId]; ok {
+				ngc := gc.Merge(g)
+				mergedGroupCfg[gId] = ngc
+			} else {
+				mergedGroupCfg[gId] = g
+			}
+		}
+	}
+
+	/*
+		for groupName, groupConfig := range mergedGroupCfg {
+			log.Info().Str("name", groupName).Msg(semLogContext)
+			b, err := yaml.Marshal(groupConfig)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return nil, err
+			}
+
+			fmt.Println(string(b))
+		}
+	*/
+
+	if len(mergedGroupCfg) > 0 {
 		registry = make(map[string]Group)
 	}
 
-	for ng, gcfg := range cfg {
+	for ng, gcfg := range mergedGroupCfg {
 		g, err := InitGroup(gcfg)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
