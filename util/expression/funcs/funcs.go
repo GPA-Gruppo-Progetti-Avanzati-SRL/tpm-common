@@ -48,6 +48,7 @@ func Builtins() map[string]interface{} {
 	builtins["lenJsonArray"] = LenJsonArray
 	builtins["isJsonArray"] = IsJsonArray
 	builtins["stringIn"] = StringIn
+	builtins["firstOf"] = FirstOf
 	return builtins
 }
 

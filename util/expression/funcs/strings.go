@@ -76,3 +76,14 @@ func Len(elem interface{}) int {
 	s := fmt.Sprintf("%v", elem)
 	return len(s)
 }
+
+func FirstOf(elem interface{}) string {
+	s := fmt.Sprintf("%v", elem)
+
+	arr := strings.Split(s, ",")
+	if len(arr) > 0 {
+		return arr[0]
+	}
+
+	return s
+}

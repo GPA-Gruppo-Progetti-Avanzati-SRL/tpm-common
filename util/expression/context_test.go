@@ -48,7 +48,7 @@ func TestContextEvaluation(t *testing.T) {
 		expected interface{}
 	}{
 		{
-			expr:     `{$}`,
+			expr:     `{$.beneficiario.numero}`,
 			expected: "8188602",
 		},
 		{
@@ -78,6 +78,10 @@ func TestContextEvaluation(t *testing.T) {
 		{
 			expr:     `e:_nowAfter("1m", "2006-01-02")`,
 			expected: time.Now().Format("2006-01-02"),
+		},
+		{
+			expr:     `:firstOf("1,2")`,
+			expected: "1",
 		},
 	}
 
