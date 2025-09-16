@@ -2,12 +2,13 @@ package varResolver_test
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression/funcs"
-	vars "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/expression/funcs"
+	vars "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindVariableReferences(t *testing.T) {
@@ -53,6 +54,7 @@ func TestResolveVariableReferences(t *testing.T) {
 	}
 
 	sarr = []string{
+		"{v:numero,len=-12,pad=0}",
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 		"${not-present,onf=now,20060102}",
 		"${now,2006-01-02}",
@@ -74,6 +76,7 @@ func TestResolveVariableReferences(t *testing.T) {
 		"now":          time.Now,
 		"add-duration": funcs.NowAfter,
 		"num-rapporto": "012345",
+		"numero":       "1008250111,1008250222,1008250333,1008250444",
 		"check-digit": func(a, s string) string {
 			a = strings.Replace(a, fmt.Sprintf("${%s}", s), "", -1)
 			return fmt.Sprint(len(s))
@@ -82,6 +85,10 @@ func TestResolveVariableReferences(t *testing.T) {
 
 	for i, s := range sarr {
 		s1, deferred, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
+		require.NoError(t, err, "test: %d - %s", i, s)
+		t.Logf("[%d] string %s deferred(%t) resolved to %s", i, s, deferred, s1)
+
+		s1, deferred, err = vars.ResolveVariables(s, vars.SimpleVariableReference, vars.SimpleMapResolver(m), false)
 		require.NoError(t, err, "test: %d - %s", i, s)
 		t.Logf("[%d] string %s deferred(%t) resolved to %s", i, s, deferred, s1)
 

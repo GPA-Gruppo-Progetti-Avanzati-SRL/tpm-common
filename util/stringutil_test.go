@@ -2,11 +2,12 @@ package util_test
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func TestIsNumeric(t *testing.T) {
@@ -61,7 +62,7 @@ func TestMaxLengh(t *testing.T) {
 	}
 
 	for _, iw := range s {
-		v, _ := util.ToMaxLength(iw.input, iw.param)
+		v, _ := util.ToMaxLength(iw.input, false, iw.param)
 		fmt.Printf("%s (%d) --> %s\n", iw.input, iw.param, v)
 		assert.Equal(iw.wanted, v, "to max length: strings should match")
 	}
@@ -105,7 +106,7 @@ func TestPadLengh(t *testing.T) {
 	}
 
 	for _, iw := range s {
-		v, _ := util.Pad2Length(iw.input, iw.param, "-")
+		v, _ := util.Pad2Length(iw.input, false, iw.param, "-")
 		fmt.Printf("%s (%d) --> %s\n", iw.input, iw.param, v)
 		a.Equal(iw.wanted, v, "pad to length: strings should match")
 	}
@@ -203,23 +204,52 @@ func TestStrings(t *testing.T) {
 	}
 
 	s = []InputWanted{
+		{input: "000034036586,0789", wanted: "34036586,789"},
 		{input: "000034036586", wanted: "34036586"},
 		{input: "000", wanted: ""},
 	}
 
 	for _, iw := range s {
-		modS = util.TrimPrefixCharacters(iw.input, "0")
+		modS = util.TrimPrefixCharacters(iw.input, true, "0")
 		fmt.Printf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear prefix")
 	}
 
 	s = []InputWanted{
+		{input: "03403658600,890", wanted: "034036586,89"},
 		{input: "03403658600", wanted: "034036586"},
 		{input: "000", wanted: ""},
+		{input: "000,000", wanted: ","},
 	}
 
 	for _, iw := range s {
-		modS = util.TrimSuffixCharacters(iw.input, "0")
+		modS = util.TrimSuffixCharacters(iw.input, true, "0")
+		fmt.Printf("%s --> %s\n", iw.input, modS)
+		a.Equal(iw.wanted, modS, "clear suffix")
+	}
+
+	s = []InputWanted{
+		{input: "03403658600,890", wanted: "03403658600000000000,89000000000000000000"},
+		{input: "03403658600", wanted: "03403658600000000000"},
+		{input: "000", wanted: "00000000000000000000"},
+		{input: "000,000", wanted: "00000000000000000000,00000000000000000000"},
+	}
+
+	for _, iw := range s {
+		modS, _ = util.Pad2Length(iw.input, true, 20, "0")
+		fmt.Printf("%s --> %s\n", iw.input, modS)
+		a.Equal(iw.wanted, modS, "clear suffix")
+	}
+
+	s = []InputWanted{
+		{input: "03403658600,890", wanted: "0340365860,890"},
+		{input: "03403658600", wanted: "0340365860"},
+		{input: "000", wanted: "000"},
+		{input: "000,000", wanted: "000,000"},
+	}
+
+	for _, iw := range s {
+		modS, _ = util.ToMaxLength(iw.input, true, 10)
 		fmt.Printf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear suffix")
 	}

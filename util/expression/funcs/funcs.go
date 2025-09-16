@@ -1,9 +1,10 @@
 package funcs
 
 import (
+	"strings"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/PaesslerAG/gval"
-	"strings"
 )
 
 func Builtins() map[string]interface{} {
@@ -20,7 +21,7 @@ func Builtins() map[string]interface{} {
 	}
 
 	builtins["_pad"] = func(s string, len int) string {
-		v, _ := util.Pad2Length(s, len, "0")
+		v, _ := util.Pad2Length(s, false, len, "0")
 		return v
 	}
 
@@ -62,7 +63,7 @@ func GValFunctions() []gval.Language {
 			return Now(fmt), nil
 		}),
 		gval.Function("_pad", func(s string, len int) (string, error) {
-			v, _ := util.Pad2Length(s, len, "0")
+			v, _ := util.Pad2Length(s, false, len, "0")
 			return v, nil
 		}),
 	}

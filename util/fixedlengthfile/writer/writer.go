@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
-	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
+	"github.com/rs/zerolog/log"
 )
 
 type Writer interface {
@@ -50,7 +51,7 @@ func (r *Record) String() string {
 	for i := 0; i < len(r.csvRecord); i++ {
 
 		if len(r.csvRecord[i]) < r.fields[i].Length {
-			s, _ := util.ToFixedLength(r.csvRecord[i], r.fields[i].Length)
+			s, _ := util.ToFixedLength(r.csvRecord[i], false, r.fields[i].Length)
 			sb.WriteString(s)
 		} else {
 			sb.WriteString(r.csvRecord[i])
@@ -71,7 +72,7 @@ func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 
 	if fIndex, ok := r.fieldMap[fieldId]; ok {
 		f := r.fields[fIndex]
-		s, _ = util.ToFixedLength(s, f.Length)
+		s, _ = util.ToFixedLength(s, false, f.Length)
 		r.csvRecord[fIndex] = s
 	} else {
 		log.Error().Str("field-id", fieldId).Msg(semLogContext + " field not found")

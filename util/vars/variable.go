@@ -3,12 +3,13 @@ package varResolver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/mangling"
-	"github.com/rs/zerolog/log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/mangling"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -30,6 +31,7 @@ type VariableOpts struct {
 	FormatType    string
 	Format        string
 	MaxLength     int
+	CSValue       bool
 	PadChar       string
 	DefaultValue  interface{}
 	UnPadChar     string
@@ -136,7 +138,7 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 		if s, ok := v.(string); ok {
 			// should handle the default case where is not defined.
 			if s != "null" {
-				v = util.TrimPrefixCharacters(s, opts.UnPadChar)
+				v = util.TrimPrefixCharacters(s, opts.CSValue, opts.UnPadChar)
 			}
 		} else {
 			log.Warn().Interface("value", v).Str("conv", "un-pad").Msg(semLogContext + " value is not string")
@@ -187,11 +189,11 @@ func (vr Variable) ToString(v interface{}, jsonEscape bool, skipOpts bool) (stri
 	}
 
 	if opts.PadChar != "" {
-		res, _ = util.Pad2Length(res, opts.MaxLength, opts.PadChar)
+		res, _ = util.Pad2Length(res, opts.CSValue, opts.MaxLength, opts.PadChar)
 	}
 
 	if opts.MaxLength != 0 {
-		res, _ = util.ToMaxLength(res, opts.MaxLength)
+		res, _ = util.ToMaxLength(res, opts.CSValue, opts.MaxLength)
 	}
 
 	if opts.Quoted {
@@ -229,6 +231,7 @@ const (
 	FormatOptSprintf     = "sprf="
 	FormatOptTimeLayout  = "tml="
 	FormatOptRotate      = "rotate"
+	FormatOptCSV         = "csv"
 	FormatOptQuoted      = "quoted"
 	FormatOptQuotedOnt   = "quoted-ont"
 	FormatOptQuotedOnf   = "quoted-onf"
@@ -263,6 +266,7 @@ var optsMap = map[string]struct{}{
 	FormatOptConvAtoi:    struct{}{},
 	FormatOptUnPad:       struct{}{},
 	FormatOptTrimSpace:   struct{}{},
+	FormatOptCSV:         struct{}{},
 }
 
 func resolveFormatOption(s string) string {
@@ -316,6 +320,7 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 		FormatType:    "",
 		Format:        "",
 		MaxLength:     0,
+		CSValue:       false,
 		PadChar:       "",
 		DefaultValue:  "",
 		UnPadChar:     "",
@@ -349,6 +354,8 @@ func (vr Variable) getOpts(value interface{}, skipOpts bool) VariableOpts {
 				}
 			case FormatOptPadChar:
 				opts.PadChar = "0"
+			case FormatOptCSV:
+				opts.CSValue = true
 			case FormatOptLen:
 				v, err := strconv.Atoi(strings.TrimPrefix(vr.tags[i], FormatOptLen))
 				if err != nil {

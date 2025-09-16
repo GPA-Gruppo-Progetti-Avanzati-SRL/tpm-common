@@ -2,11 +2,12 @@ package util
 
 import (
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"math/rand"
 	"regexp"
 	"strings"
 	"text/scanner"
+
+	"github.com/rs/zerolog/log"
 )
 
 // StringJoin joins an array of strings with separator (same as strings.Join) and truncate the result if the resulting len is bigger than maxLength.
@@ -26,16 +27,37 @@ func StringJoin(args []string, sep string, maxLength int) string {
 	return s
 }
 
-func ToFixedLength(s string, maxLength int) (string, bool) {
-	s, adjusted := ToMaxLength(s, maxLength)
+func ToFixedLength(s string, csv bool, maxLength int) (string, bool) {
+	s, adjusted := ToMaxLength(s, csv, maxLength)
 	if !adjusted {
-		s, adjusted = Pad2Length(s, maxLength, " ")
+		s, adjusted = Pad2Length(s, csv, maxLength, " ")
 	}
 
 	return s, adjusted
 }
 
-func ToMaxLength(s string, maxLength int) (string, bool) {
+func ToMaxLength(s string, csv bool, maxLength int) (string, bool) {
+	const semLogContext = "common-util::to-max-length"
+
+	if !csv {
+		return toMaxLength(s, maxLength)
+	}
+
+	values := strings.Split(s, ",")
+	var outValues []string
+	var oneHasBeenTruncated bool
+	for _, v := range values {
+		v1, truncated := toMaxLength(v, maxLength)
+		if truncated {
+			oneHasBeenTruncated = true
+		}
+		outValues = append(outValues, v1)
+	}
+
+	return strings.Join(outValues, ","), oneHasBeenTruncated
+}
+
+func toMaxLength(s string, maxLength int) (string, bool) {
 
 	const semLogContext = "common-util::to-max-length"
 	if maxLength == 0 {
@@ -57,7 +79,29 @@ func ToMaxLength(s string, maxLength int) (string, bool) {
 	return s, truncated
 }
 
-func Pad2Length(s string, maxLength int, padChar string) (string, bool) {
+func Pad2Length(s string, csv bool, maxLength int, padChar string) (string, bool) {
+
+	const semLogContext = "common-util::pad-2-length"
+
+	if !csv {
+		return pad2Length(s, maxLength, padChar)
+	}
+
+	values := strings.Split(s, ",")
+	var outValues []string
+	var oneHasBeenTruncated bool
+	for _, v := range values {
+		v1, truncated := pad2Length(v, maxLength, padChar)
+		if truncated {
+			oneHasBeenTruncated = true
+		}
+		outValues = append(outValues, v1)
+	}
+
+	return strings.Join(outValues, ","), oneHasBeenTruncated
+}
+
+func pad2Length(s string, maxLength int, padChar string) (string, bool) {
 
 	const semLogContext = "common-util::pad-2-length"
 
@@ -81,45 +125,70 @@ func Pad2Length(s string, maxLength int, padChar string) (string, bool) {
 	return s, padded
 }
 
-func TrimPrefixCharacters(s string, c string) string {
+func TrimPrefixCharacters(s string, csv bool, c string) string {
 	if s == "" || c == "" {
 		return s
 	}
 
-	lastZeroNdx := -1
-	for i := 0; i < len(s); i++ {
-		if s[i] == c[0] {
-			lastZeroNdx = i
+	var values []string
+	if !csv {
+		values = []string{s}
+	} else {
+		values = strings.Split(s, ",")
+	}
+
+	var outValues []string
+	for _, v := range values {
+		lastZeroNdx := -1
+		for i := 0; i < len(v); i++ {
+			if v[i] == c[0] {
+				lastZeroNdx = i
+			} else {
+				break
+			}
+		}
+
+		if lastZeroNdx >= 0 {
+			outValues = append(outValues, v[lastZeroNdx+1:])
 		} else {
-			break
+			outValues = append(outValues, v)
 		}
 	}
 
-	if lastZeroNdx >= 0 {
-		return s[lastZeroNdx+1:]
-	}
-
-	return s
+	return strings.Join(outValues, ",")
 }
 
-func TrimSuffixCharacters(s string, c string) string {
+func TrimSuffixCharacters(s string, csv bool, c string) string {
 	if s == "" || c == "" {
 		return s
 	}
 
-	lastZeroNdx := -1
-	for i := len(s) - 1; i >= 0; i-- {
-		if s[i] == c[0] {
-			lastZeroNdx = i
+	var values []string
+	if !csv {
+		values = []string{s}
+	} else {
+		values = strings.Split(s, ",")
+	}
+
+	var outValues []string
+	for _, v := range values {
+		lastZeroNdx := -1
+		for i := len(v) - 1; i >= 0; i-- {
+			if v[i] == c[0] {
+				lastZeroNdx = i
+			} else {
+				break
+			}
+		}
+
+		if lastZeroNdx >= 0 {
+			outValues = append(outValues, v[:lastZeroNdx])
 		} else {
-			break
+			outValues = append(outValues, v)
 		}
 	}
 
-	if lastZeroNdx >= 0 {
-		return s[:lastZeroNdx]
-	}
-	return s
+	return strings.Join(outValues, ",")
 }
 
 func HasPrefixWithWildCard(s string, prefix string, wildCh byte) bool {
