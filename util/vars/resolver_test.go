@@ -55,6 +55,7 @@ func TestResolveVariableReferences(t *testing.T) {
 
 	sarr = []string{
 		"{v:numero,len=-12,pad=0}",
+		"{v:numero,len=-12,csv,pad=0}",
 		"${ctx-id}:${today,20060102}${seq-id,03d}:${check-digit,len=-10,pad=.}",
 		"${not-present,onf=now,20060102}",
 		"${now,2006-01-02}",
