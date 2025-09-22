@@ -20,20 +20,33 @@ func (v VersionNumber) IsZero() bool {
 }
 
 func (v VersionNumber) String() string {
-	return fmt.Sprintf("%d.%d.%d%s%d", v.Major, v.Minor, v.Patch, v.PreReleasePrefix, v.PreReleaseValue)
+	if v.PreReleasePrefix != "" {
+		if v.PreReleaseValue > 0 {
+			return fmt.Sprintf("%d.%d.%d%s%d", v.Major, v.Minor, v.Patch, v.PreReleasePrefix, v.PreReleaseValue)
+		} else {
+			return fmt.Sprintf("%d.%d.%d%s", v.Major, v.Minor, v.Patch, v.PreReleasePrefix)
+		}
+	}
+	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 }
 
 func (v VersionNumber) LessThan(other VersionNumber) bool {
 	if v.Major < other.Major {
 		return true
+	} else if v.Major > other.Major {
+		return false
 	}
 
 	if v.Minor < other.Minor {
 		return true
+	} else if v.Minor > other.Minor {
+		return false
 	}
 
 	if v.Patch < other.Patch {
 		return true
+	} else if v.Patch > other.Patch {
+		return false
 	}
 
 	// is not a pre-release
@@ -49,10 +62,14 @@ func (v VersionNumber) LessThan(other VersionNumber) bool {
 	// both are pre-release
 	if v.PreReleasePrefix < other.PreReleasePrefix {
 		return true
+	} else if v.PreReleasePrefix > other.PreReleasePrefix {
+		return false
 	}
 
 	if v.PreReleaseValue < other.PreReleaseValue {
 		return true
+	} else if v.PreReleaseValue > other.PreReleaseValue {
+		return false
 	}
 
 	return false

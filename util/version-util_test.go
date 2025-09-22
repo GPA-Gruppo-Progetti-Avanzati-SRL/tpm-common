@@ -45,6 +45,9 @@ func TestVersionUtil(t *testing.T) {
 		{
 			input: "6.5.4-a",
 		},
+		{
+			input: "6.5.4-32",
+		},
 	}
 
 	t.Log("Testing LessThan")
