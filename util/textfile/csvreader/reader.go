@@ -5,12 +5,13 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
-	"io"
-	"os"
 )
 
 type Reader interface {

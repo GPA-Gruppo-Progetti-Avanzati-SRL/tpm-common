@@ -15,6 +15,10 @@ type VersionNumber struct {
 	PreReleaseValue  int
 }
 
+func (v VersionNumber) IsZero() bool {
+	return v.Major == 0 && v.Minor == 0 && v.Patch == 0 && v.PreReleasePrefix == "" && v.PreReleaseValue == 0
+}
+
 func (v VersionNumber) String() string {
 	return fmt.Sprintf("%d.%d.%d%s%d", v.Major, v.Minor, v.Patch, v.PreReleasePrefix, v.PreReleaseValue)
 }

@@ -84,6 +84,7 @@ func TestResolveVariableReferences(t *testing.T) {
 		},
 	}
 
+	t.Log("###### Section 2")
 	for i, s := range sarr {
 		s1, deferred, err := vars.ResolveVariables(s, vars.DollarVariableReference, vars.SimpleMapResolver(m), false)
 		require.NoError(t, err, "test: %d - %s", i, s)

@@ -119,6 +119,8 @@ func TestStrings(t *testing.T) {
 	var s []InputWanted
 	var modS string
 
+	t.Log("----------- Decamelize")
+
 	// Decamelize
 	s = []InputWanted{
 		{input: "innerHTML", wanted: "inner_html"},
@@ -131,10 +133,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.Decamelize(iw.input)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "decamelize: strings should match")
 	}
 
+	t.Log("----------- Dasherize")
 	// Dasherize
 	s = []InputWanted{
 		{input: "innerHTML", wanted: "inner-html"},
@@ -147,10 +150,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.Dasherize(iw.input)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "dasherize: strings should match")
 	}
 
+	t.Log("----------- Camelize")
 	// Camelize
 	s = []InputWanted{
 		{input: "innerHTML", wanted: "innerHTML"},
@@ -166,10 +170,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.Camelize(iw.input)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "camelize: strings should match")
 	}
 
+	t.Log("----------- Classify")
 	// Classify
 	s = []InputWanted{
 		{input: "innerHTML", wanted: "InnerHTML"},
@@ -183,10 +188,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.Classify(iw.input)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "classify: strings should match")
 	}
 
+	t.Log("----------- Underscore")
 	// Underscore
 	s = []InputWanted{
 		{input: "innerHTML", wanted: "inner_html"},
@@ -199,10 +205,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.Underscore(iw.input)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "underscore: strings should match")
 	}
 
+	t.Log("----------- TrimPrefixCharacters")
 	s = []InputWanted{
 		{input: "000034036586,0789", wanted: "34036586,789"},
 		{input: "000034036586", wanted: "34036586"},
@@ -211,10 +218,11 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.TrimPrefixCharacters(iw.input, true, "0")
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear prefix")
 	}
 
+	t.Log("----------- TrimSuffixCharacters")
 	s = []InputWanted{
 		{input: "03403658600,890", wanted: "034036586,89"},
 		{input: "03403658600", wanted: "034036586"},
@@ -224,33 +232,40 @@ func TestStrings(t *testing.T) {
 
 	for _, iw := range s {
 		modS = util.TrimSuffixCharacters(iw.input, true, "0")
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear suffix")
 	}
 
+	t.Log("----------- Pad2Length")
 	s = []InputWanted{
 		{input: "03403658600,890", wanted: "03403658600000000000,89000000000000000000"},
 		{input: "03403658600", wanted: "03403658600000000000"},
 		{input: "000", wanted: "00000000000000000000"},
 		{input: "000,000", wanted: "00000000000000000000,00000000000000000000"},
+		{input: "000,", wanted: "00000000000000000000"},
+		{input: ",", wanted: ""},
 	}
 
 	for _, iw := range s {
 		modS, _ = util.Pad2Length(iw.input, true, 20, "0")
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear suffix")
 	}
 
+	t.Log("----------- ToMaxLength")
 	s = []InputWanted{
 		{input: "03403658600,890", wanted: "0340365860,890"},
 		{input: "03403658600", wanted: "0340365860"},
+		{input: "103403658600", wanted: "1034036586"},
 		{input: "000", wanted: "000"},
 		{input: "000,000", wanted: "000,000"},
+		{input: "12345678901,", wanted: "1234567890"},
+		{input: ",", wanted: ""},
 	}
 
 	for _, iw := range s {
 		modS, _ = util.ToMaxLength(iw.input, true, 10)
-		fmt.Printf("%s --> %s\n", iw.input, modS)
+		t.Logf("%s --> %s\n", iw.input, modS)
 		a.Equal(iw.wanted, modS, "clear suffix")
 	}
 

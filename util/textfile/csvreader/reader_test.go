@@ -2,14 +2,16 @@ package csvreader_test
 
 import (
 	"bytes"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
-	csvreader2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/require"
 	"io"
 	"os"
 	"testing"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
+	csvreader2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
+	"github.com/go-playground/validator/v10"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReader(t *testing.T) {
@@ -59,5 +61,22 @@ func TestReader(t *testing.T) {
 
 		require.Equal(t, io.EOF, err, "got: "+err.Error())
 	}
+}
+
+func TestValidate(t *testing.T) {
+	validate := validator.New()
+	record := map[string]interface{}{
+		"campaign": "12345",
+		"natura":   "PG",
+	}
+
+	rules := map[string]interface{}{
+		"campaign": "required",
+		"natura":   "required,lte=2,oneof=PF PG",
+		"descr":    `required_if=natura ZIC`,
+	}
+
+	resp := validate.ValidateMap(record, rules)
+	t.Log(resp)
 
 }

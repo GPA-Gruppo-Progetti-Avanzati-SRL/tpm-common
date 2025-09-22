@@ -47,13 +47,18 @@ func ToMaxLength(s string, csv bool, maxLength int) (string, bool) {
 	var outValues []string
 	var oneHasBeenTruncated bool
 	for _, v := range values {
-		v1, truncated := toMaxLength(v, maxLength)
-		if truncated {
-			oneHasBeenTruncated = true
+		if v != "" { // clear spurious elements
+			v1, truncated := toMaxLength(v, maxLength)
+			if truncated {
+				oneHasBeenTruncated = true
+			}
+			outValues = append(outValues, v1)
 		}
-		outValues = append(outValues, v1)
 	}
 
+	if len(outValues) == 0 {
+		return "", false
+	}
 	return strings.Join(outValues, ","), oneHasBeenTruncated
 }
 
@@ -91,13 +96,18 @@ func Pad2Length(s string, csv bool, maxLength int, padChar string) (string, bool
 	var outValues []string
 	var oneHasBeenTruncated bool
 	for _, v := range values {
-		v1, truncated := pad2Length(v, maxLength, padChar)
-		if truncated {
-			oneHasBeenTruncated = true
+		if v != "" { // clear spurious elements
+			v1, truncated := pad2Length(v, maxLength, padChar)
+			if truncated {
+				oneHasBeenTruncated = true
+			}
+			outValues = append(outValues, v1)
 		}
-		outValues = append(outValues, v1)
 	}
 
+	if len(outValues) == 0 {
+		return "", false
+	}
 	return strings.Join(outValues, ","), oneHasBeenTruncated
 }
 
@@ -139,22 +149,27 @@ func TrimPrefixCharacters(s string, csv bool, c string) string {
 
 	var outValues []string
 	for _, v := range values {
-		lastZeroNdx := -1
-		for i := 0; i < len(v); i++ {
-			if v[i] == c[0] {
-				lastZeroNdx = i
-			} else {
-				break
+		if v != "" { // clear spurious elements
+			lastZeroNdx := -1
+			for i := 0; i < len(v); i++ {
+				if v[i] == c[0] {
+					lastZeroNdx = i
+				} else {
+					break
+				}
 			}
-		}
 
-		if lastZeroNdx >= 0 {
-			outValues = append(outValues, v[lastZeroNdx+1:])
-		} else {
-			outValues = append(outValues, v)
+			if lastZeroNdx >= 0 {
+				outValues = append(outValues, v[lastZeroNdx+1:])
+			} else {
+				outValues = append(outValues, v)
+			}
 		}
 	}
 
+	if len(outValues) == 0 {
+		return ""
+	}
 	return strings.Join(outValues, ",")
 }
 
@@ -172,22 +187,27 @@ func TrimSuffixCharacters(s string, csv bool, c string) string {
 
 	var outValues []string
 	for _, v := range values {
-		lastZeroNdx := -1
-		for i := len(v) - 1; i >= 0; i-- {
-			if v[i] == c[0] {
-				lastZeroNdx = i
-			} else {
-				break
+		if v != "" { // clear spurious elements
+			lastZeroNdx := -1
+			for i := len(v) - 1; i >= 0; i-- {
+				if v[i] == c[0] {
+					lastZeroNdx = i
+				} else {
+					break
+				}
 			}
-		}
 
-		if lastZeroNdx >= 0 {
-			outValues = append(outValues, v[:lastZeroNdx])
-		} else {
-			outValues = append(outValues, v)
+			if lastZeroNdx >= 0 {
+				outValues = append(outValues, v[:lastZeroNdx])
+			} else {
+				outValues = append(outValues, v)
+			}
 		}
 	}
 
+	if len(outValues) == 0 {
+		return ""
+	}
 	return strings.Join(outValues, ",")
 }
 
