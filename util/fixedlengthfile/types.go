@@ -3,18 +3,20 @@ package fixedlengthfile
 import (
 	"errors"
 	"fmt"
+
 	"github.com/rs/zerolog/log"
 )
 
 type FixedLengthFieldDefinition struct {
-	Id     string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	Name   string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Offset int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
-	Length int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
-	Help   string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
-	Index  int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
-	Trim   bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
-	Drop   bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
+	Id       string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Name     string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Offset   int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
+	Length   int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
+	Help     string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
+	Index    int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
+	Trim     bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	Drop     bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
+	Disabled bool   `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
 }
 
 type FixedLengthRecordMode string

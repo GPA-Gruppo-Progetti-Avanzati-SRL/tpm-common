@@ -2,21 +2,24 @@ package writer_test
 
 import (
 	"encoding/json"
+	"os"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile/writer"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
 )
 
 func TestWriter(t *testing.T) {
 
 	cfg := writer.Config{
+		ForgiveOnMissingField: true,
 		Fields: []fixedlengthfile.FixedLengthFieldDefinition{
 			{
-				Id:     "f1",
-				Name:   "field01",
-				Length: 10,
+				Id:       "f1",
+				Name:     "field01",
+				Length:   10,
+				Disabled: true,
 			},
 			{
 				Id:     "f2",

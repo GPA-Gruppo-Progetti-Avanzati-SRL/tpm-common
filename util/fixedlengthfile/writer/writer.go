@@ -10,6 +10,7 @@ import (
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,13 +25,14 @@ type Writer interface {
 }
 
 type Record struct {
-	csvRecord []string
-	fields    []fixedlengthfile.FixedLengthFieldDefinition
-	fieldMap  map[string]int
+	csvRecord     []string
+	fields        []fixedlengthfile.FixedLengthFieldDefinition
+	fieldMap      map[string]int
+	forgivingMode bool
 }
 
-func newRecord(fields []fixedlengthfile.FixedLengthFieldDefinition, fieldMap map[string]int) Record {
-	return Record{csvRecord: make([]string, len(fields), len(fields)), fields: fields, fieldMap: fieldMap}
+func newRecord(fields []fixedlengthfile.FixedLengthFieldDefinition, fieldMap map[string]int, forgivingMode bool) Record {
+	return Record{csvRecord: make([]string, len(fields), len(fields)), fields: fields, fieldMap: fieldMap, forgivingMode: forgivingMode}
 }
 
 func computeFieldMap(fields []fixedlengthfile.FixedLengthFieldDefinition) map[string]int {
@@ -75,7 +77,14 @@ func (r *Record) Set(fieldId string, fieldValue interface{}) error {
 		s, _ = util.ToFixedLength(s, false, f.Length)
 		r.csvRecord[fIndex] = s
 	} else {
-		log.Error().Str("field-id", fieldId).Msg(semLogContext + " field not found")
+		var evt *zerolog.Event
+		if r.forgivingMode {
+			evt = log.Info()
+		} else {
+			evt = log.Error()
+		}
+
+		evt.Str("field-id", fieldId).Msg(semLogContext + " field not found")
 	}
 
 	// At the moment is forgiving.... but the log is in error...
@@ -109,10 +118,20 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 		o(&config)
 	}
 
-	if len(config.Fields) == 0 {
-		log.Info().Msg(semLogContext + " fields have not been provided")
-		return nil, errors.New(semLogContext + " Fields configuration have not been provided")
+	var activeFields []fixedlengthfile.FixedLengthFieldDefinition
+	for _, field := range config.Fields {
+		if !field.Disabled {
+			activeFields = append(activeFields, field)
+		}
 	}
+
+	if len(activeFields) == 0 {
+		err = errors.New("no active fields configured")
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	config.Fields = activeFields
 
 	if config.ioWriter == nil && config.FileName == "" {
 		err = errors.New("please provide a writer or filename")
@@ -174,15 +193,15 @@ func (w *writerImpl) Filename() string {
 }
 
 func (w *writerImpl) NewHeadRecord() Record {
-	return newRecord(w.cfg.HeadFields, w.headFieldMap)
+	return newRecord(w.cfg.HeadFields, w.headFieldMap, w.cfg.ForgiveOnMissingField)
 }
 
 func (w *writerImpl) NewRecord() Record {
-	return newRecord(w.cfg.Fields, w.fieldMap)
+	return newRecord(w.cfg.Fields, w.fieldMap, w.cfg.ForgiveOnMissingField)
 }
 
 func (w *writerImpl) NewTailRecord() Record {
-	return newRecord(w.cfg.TailFields, w.tailFieldMap)
+	return newRecord(w.cfg.TailFields, w.tailFieldMap, w.cfg.ForgiveOnMissingField)
 }
 
 func (w *writerImpl) WriteRecord(rec Record) error {

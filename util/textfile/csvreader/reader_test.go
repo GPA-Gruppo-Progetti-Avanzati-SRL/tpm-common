@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile"
-	csvreader2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/textfile/csvreader"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -42,14 +42,14 @@ func TestReader(t *testing.T) {
 	}
 	buffers = append(buffers, buffer3)
 
-	cfgs := []csvreader2.Config{
+	cfgs := []csvreader.Config{
 		{HeaderLine: true, Separator: ";", Fields: []textfile.CSVFieldInfo{{Name: "campaign", Validation: "required"}, {Name: "email", Validation: "email"}}},
 		{HeaderLine: false, Separator: ";"},
 		{HeaderLine: false, Separator: "|"},
 	}
 
 	for i, cfg := range cfgs {
-		r, err := csvreader2.NewReader(cfg, csvreader2.WithFields(cfg.Fields), csvreader2.WithIoReader(&buffers[i]))
+		r, err := csvreader.NewReader(cfg, csvreader.WithFields(cfg.Fields), csvreader.WithIoReader(&buffers[i]))
 		require.NoError(t, err)
 
 		parsed, err := r.Read()

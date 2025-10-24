@@ -2,17 +2,19 @@ package writer
 
 import (
 	"errors"
+	"io"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/rs/zerolog/log"
-	"io"
 )
 
 type Config struct {
-	FileName   string                                       `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
-	HeadFields []fixedlengthfile.FixedLengthFieldDefinition `yaml:"h-fields,omitempty" mapstructure:"h-fields,omitempty" json:"h-fields,omitempty"`
-	Fields     []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
-	TailFields []fixedlengthfile.FixedLengthFieldDefinition `yaml:"t-fields,omitempty" mapstructure:"t-fields,omitempty" json:"t-fields,omitempty"`
-	ioWriter   io.Writer
+	FileName              string                                       `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
+	ForgiveOnMissingField bool                                         `yaml:"forgive-on-missing-fields,omitempty" mapstructure:"forgive-on-missing-fields,omitempty" json:"forgive-on-missing-fields,omitempty"`
+	HeadFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"h-fields,omitempty" mapstructure:"h-fields,omitempty" json:"h-fields,omitempty"`
+	Fields                []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
+	TailFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"t-fields,omitempty" mapstructure:"t-fields,omitempty" json:"t-fields,omitempty"`
+	ioWriter              io.Writer
 }
 
 type Option func(cfg *Config)
