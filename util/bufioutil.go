@@ -9,6 +9,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func BufoReaderReadLineAsString(r *bufio.Reader, lineNo int, maxLength int) (string, error) {
+	b, err := BufoReaderReadLine(r, lineNo, maxLength)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
 func BufoReaderReadLine(r *bufio.Reader, lineNo int, maxLength int) ([]byte, error) {
 	const semLogContext = "bufio-util::read-line"
 
