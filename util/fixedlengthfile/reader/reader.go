@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
@@ -89,6 +90,20 @@ func WithValueMappings(m []KeyValue) GetPropertyOption {
 func (r *Record) Get(n string, opts ...GetPropertyOption) string {
 	v, _ := r.GetWithIndicator(n, opts...)
 	return v
+}
+
+func (r *Record) GetAsInt(n string, opts ...GetPropertyOption) int {
+	v, _ := r.GetWithIndicator(n, opts...)
+	if v == "" {
+		return 0
+	}
+
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		log.Error().Err(err).Str("value", v).Msg("failed to convert to int")
+	}
+
+	return i
 }
 
 func (r *Record) GetWithIndicator(n string, opts ...GetPropertyOption) (string, bool) {
