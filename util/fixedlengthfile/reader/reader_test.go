@@ -4,12 +4,13 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"io"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile/reader"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
-	"io"
-	"testing"
 )
 
 //go:embed cbi-rnd-example.txt
@@ -19,7 +20,7 @@ func TestNewReader(t *testing.T) {
 
 	cfg := reader.Config{
 		FileName:       "",
-		Discriminator:  "prefix",
+		Discriminator:  reader.DiscriminatorModePrefix,
 		EmptyLinesMode: reader.EmptyLinesModeKeep,
 		Records: []fixedlengthfile.FixedLengthRecordDefinition{
 			reader.RHDefinition,

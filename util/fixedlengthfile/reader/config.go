@@ -2,8 +2,9 @@ package reader
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"io"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 )
 
 type EmptyLinesMode string
@@ -12,6 +13,8 @@ const (
 	EmptyLinesModeErr  = "err"
 	EmptyLinesModeSkip = "skip"
 	EmptyLinesModeKeep = "keep"
+
+	DiscriminatorModePrefix = "prefix"
 )
 
 type Config struct {

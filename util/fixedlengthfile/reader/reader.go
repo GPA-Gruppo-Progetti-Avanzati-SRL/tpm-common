@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fixedlengthfile"
 	"github.com/rs/zerolog/log"
-	"os"
-	"strings"
 )
 
 type Reader interface {
@@ -194,7 +195,7 @@ func NewReader(cfg Config, opts ...Option) (Reader, error) {
 		logger: util.GeometricTraceLogger{},
 	}
 
-	if config.Discriminator == "prefix" {
+	if config.Discriminator == DiscriminatorModePrefix {
 		r.discriminator = DiscriminatorFunc(PrefixDiscriminator)
 	}
 
