@@ -142,6 +142,9 @@ func (pr *Record) parse(l []byte, definition fixedlengthfile.FixedLengthRecordDe
 		res := string(l[f.Offset : f.Offset+lenField])
 		if f.Trim {
 			res = strings.TrimSpace(res)
+			if f.Type == fixedlengthfile.FixedLengthFieldNumeric {
+				res = util.TrimPrefixCharacters(res, false, "0")
+			}
 		}
 		pr.Fields[fndx] = res
 		fndx++
