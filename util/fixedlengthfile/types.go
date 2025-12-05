@@ -8,15 +8,17 @@ import (
 )
 
 type FixedLengthFieldDefinition struct {
-	Id       string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	Name     string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Offset   int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
-	Length   int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
-	Help     string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
-	Index    int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
-	Trim     bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
-	Drop     bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
-	Disabled bool   `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
+	Id          string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Name        string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Offset      int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
+	Length      int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
+	Help        string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
+	Index       int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
+	Trim        bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	Type        string `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	UnPadPrefix string `yaml:"unpad-prefix,omitempty" mapstructure:"unpad-prefix,omitempty" json:"unpad-prefix,omitempty"`
+	Drop        bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
+	Disabled    bool   `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
 }
 
 type FixedLengthRecordMode string
@@ -25,14 +27,17 @@ const (
 	FixedLengthRecordModeExact   = "exact"
 	FixedLengthRecordModeAtLeast = "at-least"
 	FixedLengthRecordModeAny     = "any"
+
+	FixedLengthFieldAlpha   = "alpha"
+	FixedLengthFieldNumeric = "numeric"
 )
 
 type FixedLengthRecordDefinition struct {
 	Id                  string                       `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	PrefixDiscriminator string                       `yaml:"prefix-discriminator,omitempty" mapstructure:"prefix-discriminator,omitempty" json:"prefix-discriminator,omitempty"`
+	LengthMode          FixedLengthRecordMode        `yaml:"length-mode,omitempty" mapstructure:"length-mode,omitempty" json:"length-mode,omitempty"`
 	Fields              []FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
 	Len                 int                          `yaml:"len,omitempty" mapstructure:"len,omitempty" json:"len,omitempty"`
-	LengthMode          FixedLengthRecordMode        `yaml:"length-mode,omitempty" mapstructure:"length-mode,omitempty" json:"length-mode,omitempty"`
-	PrefixDiscriminator string                       `yaml:"prefix-discriminator,omitempty" mapstructure:"prefix-discriminator,omitempty" json:"prefix-discriminator,omitempty"`
 	FieldMap            map[string]int
 }
 
