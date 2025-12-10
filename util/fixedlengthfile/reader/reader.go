@@ -231,7 +231,7 @@ func NewReader(cfg Config, opts ...Option) (Reader, error) {
 	if config.ioReader != nil {
 		r.ioReader = bufio.NewReader(config.ioReader)
 	} else {
-		r.osFile, err = os.Create(config.FileName)
+		r.osFile, err = os.Open(config.FileName)
 		if err != nil {
 			return nil, err
 		}
