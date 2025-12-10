@@ -20,6 +20,7 @@ type FieldFormat struct {
 	PadCharacter string         `yaml:"pad-character,omitempty" mapstructure:"pad-character,omitempty" json:"pad-character,omitempty"`
 	Alignment    FieldAlignment `yaml:"alignment,omitempty" mapstructure:"alignment,omitempty" mapstructure:"alignment,omitempty" json:"alignment,omitempty"`
 	Trim         bool           `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	SubLength    int            `yaml:"sub-length,omitempty" mapstructure:"sub-length,omitempty" json:"sub-length,omitempty"`
 }
 
 // TrimPrefixPadding Convenience method to manage the deletion of the field UnPadPrefix
@@ -70,6 +71,26 @@ func (fd FixedLengthFieldDefinition) Sprintf(value string) string {
 	}
 
 	return s
+}
+
+func (fd FixedLengthFieldDefinition) Sscanf(value string) string {
+
+	if fd.Format.SubLength > 0 && len(value) > fd.Format.SubLength {
+		if fd.Format.Alignment == AlignmentRight {
+			value, _ = util.ToMaxLength(value, false, -fd.Format.SubLength)
+		} else {
+			value, _ = util.ToMaxLength(value, false, fd.Format.SubLength)
+		}
+	}
+
+	if fd.Format.Trim {
+		value = strings.TrimSpace(value)
+		if fd.Type == FixedLengthFieldNumeric {
+			value = util.TrimPrefixCharacters(value, false, "0")
+		}
+	}
+
+	return value
 }
 
 type FixedLengthRecordMode string
