@@ -14,18 +14,27 @@ func TestWriter(t *testing.T) {
 
 	cfg := writer.Config{
 		ForgiveOnMissingField: true,
-		Fields: []fixedlengthfile.FixedLengthFieldDefinition{
-			{
-				Id:       "f1",
-				Name:     "field01",
-				Length:   10,
-				Disabled: true,
+		Records: []writer.RecordConfig{{
+			Key: "r1",
+			Fields: []fixedlengthfile.FixedLengthFieldDefinition{
+				{
+					Id:     "f1",
+					Name:   "std field",
+					Length: 20,
+				},
+				{
+					Id:     "f2",
+					Name:   "short field",
+					Length: 5,
+				},
+				{
+					Id:       "f3",
+					Name:     "disabled field",
+					Length:   5,
+					Disabled: true,
+				},
 			},
-			{
-				Id:     "f2",
-				Name:   "field02",
-				Length: 5,
-			},
+		},
 		},
 	}
 
@@ -38,18 +47,23 @@ func TestWriter(t *testing.T) {
 	require.NoError(t, err)
 	defer w.Close(true)
 
-	r := w.NewRecord()
-	_ = r.Set("f2", "ciao on field 2")
+	r, err := w.NewRecord("r1")
+	require.NoError(t, err)
+	_ = r.Set("f2", "ciao on short field 2")
 	err = w.WriteRecord(r)
 	require.NoError(t, err)
 
-	r = w.NewRecord()
+	r, err = w.NewRecord("r1")
+	require.NoError(t, err)
+	_ = r.Set("f1", "ciao on std field 1")
 	err = w.WriteRecord(r)
 	require.NoError(t, err)
 
-	r = w.NewRecord()
+	r, err = w.NewRecord("r1")
+	require.NoError(t, err)
 	_ = r.Set("f1", "hello on field 1")
-	_ = r.Set("f3", "doesn't exists")
+	_ = r.Set("f3", "is disabled!")
+	_ = r.Set("f4", "doesn't exists")
 	err = w.WriteRecord(r)
 	require.NoError(t, err)
 }

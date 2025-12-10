@@ -7,18 +7,42 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type FieldAlignment string
+
+const (
+	AlignmentLeft  FieldAlignment = "left"
+	AlignmentRight                = "right"
+)
+
+type FieldFormat struct {
+	PadCharacter string         `yaml:"pad-character,omitempty" mapstructure:"pad-character,omitempty" json:"pad-character,omitempty"`
+	Alignment    FieldAlignment `yaml:"alignment,omitempty" mapstructure:"alignment,omitempty" mapstructure:"alignment,omitempty" json:"alignment,omitempty"`
+	Trim         bool           `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+}
+
+// TrimPrefixPadding Convenience method to manage the deletion of the field UnPadPrefix
+func (ff FieldFormat) TrimPrefixPadding() bool {
+	if ff.PadCharacter == "0" && ff.Alignment == AlignmentRight {
+		return true
+	}
+
+	return false
+}
+
 type FixedLengthFieldDefinition struct {
-	Id          string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	Name        string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Offset      int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
-	Length      int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
-	Help        string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
-	Index       int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
-	Trim        bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
-	Type        string `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
-	UnPadPrefix string `yaml:"unpad-prefix,omitempty" mapstructure:"unpad-prefix,omitempty" json:"unpad-prefix,omitempty"`
-	Drop        bool   `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
-	Disabled    bool   `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
+	Id     string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Name   string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Offset int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
+	Length int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
+	Help   string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
+	Index  int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
+	// Trim   bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	Type string `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	// UnPadPrefix string `yaml:"unpad-prefix,omitempty" mapstructure:"unpad-prefix,omitempty" json:"unpad-prefix,omitempty"`
+	Drop     bool        `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
+	Disabled bool        `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
+	Format   FieldFormat `yaml:"format,omitempty" mapstructure:"format,omitempty" json:"format,omitempty"`
+	WarnOn   bool        `yaml:"warn-on,omitempty" mapstructure:"warn-on,omitempty" json:"warn-on,omitempty"`
 }
 
 type FixedLengthRecordMode string

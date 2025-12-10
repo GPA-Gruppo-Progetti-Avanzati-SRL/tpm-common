@@ -18,9 +18,7 @@ type Writer interface {
 	Close(removeFile bool)
 	WriteMap(map[string]interface{}) error
 	WriteRecord(Record) error
-	NewRecord() Record
-	NewHeadRecord() Record
-	NewTailRecord() Record
+	NewRecord(key string) (Record, error)
 	Filename() string
 }
 
@@ -96,13 +94,13 @@ func (r *Record) Fields() []string {
 }
 
 type writerImpl struct {
-	cfg          Config
-	ioWriter     *bufio.Writer
-	headFieldMap map[string]int
-	fieldMap     map[string]int
-	tailFieldMap map[string]int
-	osFile       *os.File
-	lineNumber   int
+	cfg      *Config
+	ioWriter *bufio.Writer
+	//headFieldMap map[string]int
+	//fieldMap     map[string]int
+	//tailFieldMap map[string]int
+	osFile     *os.File
+	lineNumber int
 
 	logger util.GeometricTraceLogger
 }
@@ -112,29 +110,8 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 	const semLogContext = "fixed-length-writer::new"
 	var err error
 
-	config := cfg
-
-	for _, o := range opts {
-		o(&config)
-	}
-
-	var activeFields []fixedlengthfile.FixedLengthFieldDefinition
-	for _, field := range config.Fields {
-		if !field.Disabled {
-			activeFields = append(activeFields, field)
-		}
-	}
-
-	if len(activeFields) == 0 {
-		err = errors.New("no active fields configured")
-		log.Error().Err(err).Msg(semLogContext)
-		return nil, err
-	}
-
-	config.Fields = activeFields
-
-	if config.ioWriter == nil && config.FileName == "" {
-		err = errors.New("please provide a writer or filename")
+	config, err := cfg.ResolveConfig(opts...)
+	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
 	}
@@ -143,16 +120,6 @@ func NewWriter(cfg Config, opts ...Option) (Writer, error) {
 		cfg:    config,
 		logger: util.GeometricTraceLogger{},
 	}
-
-	r.fieldMap = computeFieldMap(config.Fields)
-	if len(config.HeadFields) > 0 {
-		r.headFieldMap = computeFieldMap(config.HeadFields)
-	}
-	if len(config.TailFields) > 0 {
-		r.tailFieldMap = computeFieldMap(config.TailFields)
-	}
-
-	log.Info().Int("number-of-fields", len(config.Fields)).Int("number-of-head-fields", len(config.HeadFields)).Int("number-of-tail-fields", len(config.TailFields)).Msg(semLogContext)
 
 	if config.ioWriter != nil {
 		r.ioWriter = bufio.NewWriter(config.ioWriter)
@@ -192,17 +159,27 @@ func (w *writerImpl) Filename() string {
 	return w.cfg.FileName
 }
 
-func (w *writerImpl) NewHeadRecord() Record {
-	return newRecord(w.cfg.HeadFields, w.headFieldMap, w.cfg.ForgiveOnMissingField)
+func (w *writerImpl) NewRecord(key string) (Record, error) {
+	for _, r := range w.cfg.Records {
+		if r.Key == key {
+			return newRecord(r.Fields, r.fieldMap, w.cfg.ForgiveOnMissingField), nil
+		}
+	}
+
+	return Record{}, errors.New("record not found by key")
 }
 
-func (w *writerImpl) NewRecord() Record {
-	return newRecord(w.cfg.Fields, w.fieldMap, w.cfg.ForgiveOnMissingField)
-}
-
-func (w *writerImpl) NewTailRecord() Record {
-	return newRecord(w.cfg.TailFields, w.tailFieldMap, w.cfg.ForgiveOnMissingField)
-}
+//func (w *writerImpl) NewHeadRecord() Record {
+//	return newRecord(w.cfg.HeadFields, w.headFieldMap, w.cfg.ForgiveOnMissingField)
+//}
+//
+//func (w *writerImpl) NewRecord() Record {
+//	return newRecord(w.cfg.Fields, w.fieldMap, w.cfg.ForgiveOnMissingField)
+//}
+//
+//func (w *writerImpl) NewTailRecord() Record {
+//	return newRecord(w.cfg.TailFields, w.tailFieldMap, w.cfg.ForgiveOnMissingField)
+//}
 
 func (w *writerImpl) WriteRecord(rec Record) error {
 	_, err := w.ioWriter.WriteString(rec.String())

@@ -8,13 +8,22 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type RecordConfig struct {
+	Key      string                                       `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
+	Fields   []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
+	fieldMap map[string]int
+}
+
 type Config struct {
-	FileName              string                                       `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
-	ForgiveOnMissingField bool                                         `yaml:"forgive-on-missing-fields,omitempty" mapstructure:"forgive-on-missing-fields,omitempty" json:"forgive-on-missing-fields,omitempty"`
-	HeadFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"h-fields,omitempty" mapstructure:"h-fields,omitempty" json:"h-fields,omitempty"`
-	Fields                []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
-	TailFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"t-fields,omitempty" mapstructure:"t-fields,omitempty" json:"t-fields,omitempty"`
+	FileName              string         `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
+	ForgiveOnMissingField bool           `yaml:"forgive-on-missing-fields,omitempty" mapstructure:"forgive-on-missing-fields,omitempty" json:"forgive-on-missing-fields,omitempty"`
+	Records               []RecordConfig `yaml:"records,omitempty" mapstructure:"records,omitempty" json:"records,omitempty"`
 	ioWriter              io.Writer
+
+	// HeadFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"h-fields,omitempty" mapstructure:"h-fields,omitempty" json:"h-fields,omitempty"`
+	// Fields                []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
+	// TailFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"t-fields,omitempty" mapstructure:"t-fields,omitempty" json:"t-fields,omitempty"`
+
 }
 
 type Option func(cfg *Config)
@@ -31,7 +40,14 @@ func WithFilename(fn string) Option {
 	}
 }
 
-func WithFields(fi []fixedlengthfile.FixedLengthFieldDefinition) Option {
+func WithRecord(recCfg RecordConfig) Option {
+	return func(cfg *Config) {
+		flds, _ := adjustFieldInfoIndex(recCfg.Fields)
+		cfg.Records = append(cfg.Records, RecordConfig{Key: recCfg.Key, Fields: flds})
+	}
+}
+
+/*func WithFields(fi []fixedlengthfile.FixedLengthFieldDefinition) Option {
 	return func(cfg *Config) {
 		cfg.Fields, _ = adjustFieldInfoIndex(fi)
 	}
@@ -47,7 +63,7 @@ func WithTailFields(fi []fixedlengthfile.FixedLengthFieldDefinition) Option {
 	return func(cfg *Config) {
 		cfg.TailFields, _ = adjustFieldInfoIndex(fi)
 	}
-}
+}*/
 
 func adjustFieldInfoIndex(fields []fixedlengthfile.FixedLengthFieldDefinition) ([]fixedlengthfile.FixedLengthFieldDefinition, error) {
 	const semLogContext = "fixed-length-writer::adjust-field-indexes"
@@ -75,4 +91,47 @@ func adjustFieldInfoIndex(fields []fixedlengthfile.FixedLengthFieldDefinition) (
 	}
 
 	return fields, nil
+}
+
+func (cfg Config) ResolveConfig(opts ...Option) (*Config, error) {
+	const semLogContext = "fixed-length-writer::resolve-config"
+	var err error
+
+	config := cfg
+	for _, o := range opts {
+		o(&config)
+	}
+
+	var adjustedRecords []RecordConfig
+	for _, rec := range config.Records {
+		var activeFields []fixedlengthfile.FixedLengthFieldDefinition
+		for _, field := range rec.Fields {
+			if !field.Disabled {
+				activeFields = append(activeFields, field)
+			}
+		}
+
+		if len(activeFields) == 0 {
+			err = errors.New("no active fields configured")
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
+
+		log.Info().Str("key", rec.Key).Int("number-of-fields", len(activeFields)).Msg(semLogContext)
+
+		adjustedRecords = append(adjustedRecords, RecordConfig{
+			Key:      rec.Key,
+			Fields:   activeFields,
+			fieldMap: computeFieldMap(activeFields),
+		})
+	}
+
+	config.Records = adjustedRecords
+	if config.ioWriter == nil && config.FileName == "" {
+		err = errors.New("please provide a writer or filename")
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	return &config, nil
 }
