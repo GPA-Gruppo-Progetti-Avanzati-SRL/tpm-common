@@ -14,24 +14,39 @@ func TestWriter(t *testing.T) {
 
 	cfg := writer.Config{
 		ForgiveOnMissingField: true,
-		Records: []writer.RecordConfig{{
-			Key: "r1",
+		Records: []fixedlengthfile.FixedLengthRecordDefinition{{
+			Id: "r1",
 			Fields: []fixedlengthfile.FixedLengthFieldDefinition{
 				{
 					Id:     "f1",
 					Name:   "std field",
 					Length: 20,
+					Format: fixedlengthfile.FieldFormat{
+						PadCharacter: "",
+						Alignment:    fixedlengthfile.AlignmentLeft,
+						Trim:         true,
+					},
 				},
 				{
 					Id:     "f2",
 					Name:   "short field",
 					Length: 5,
+					Format: fixedlengthfile.FieldFormat{
+						PadCharacter: "0",
+						Alignment:    fixedlengthfile.AlignmentRight,
+						Trim:         true,
+					},
 				},
 				{
 					Id:       "f3",
 					Name:     "disabled field",
 					Length:   5,
 					Disabled: true,
+					Format: fixedlengthfile.FieldFormat{
+						PadCharacter: "",
+						Alignment:    fixedlengthfile.AlignmentLeft,
+						Trim:         true,
+					},
 				},
 			},
 		},

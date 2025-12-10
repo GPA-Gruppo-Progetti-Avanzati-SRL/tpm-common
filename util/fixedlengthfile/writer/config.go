@@ -8,16 +8,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type RecordConfig struct {
-	Key      string                                       `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
-	Fields   []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
-	fieldMap map[string]int
-}
+/*
+	type RecordConfig struct {
+		Key      string                                       `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
+		Fields   []fixedlengthfile.FixedLengthFieldDefinition `yaml:"fields,omitempty" mapstructure:"fields,omitempty" json:"fields,omitempty"`
+		fieldMap map[string]int
+	}
+*/
 
 type Config struct {
-	FileName              string         `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
-	ForgiveOnMissingField bool           `yaml:"forgive-on-missing-fields,omitempty" mapstructure:"forgive-on-missing-fields,omitempty" json:"forgive-on-missing-fields,omitempty"`
-	Records               []RecordConfig `yaml:"records,omitempty" mapstructure:"records,omitempty" json:"records,omitempty"`
+	FileName              string                                        `yaml:"filename,omitempty" mapstructure:"filename,omitempty" json:"filename,omitempty"`
+	ForgiveOnMissingField bool                                          `yaml:"forgive-on-missing-fields,omitempty" mapstructure:"forgive-on-missing-fields,omitempty" json:"forgive-on-missing-fields,omitempty"`
+	Records               []fixedlengthfile.FixedLengthRecordDefinition `yaml:"records,omitempty" mapstructure:"records,omitempty" json:"records,omitempty"`
 	ioWriter              io.Writer
 
 	// HeadFields            []fixedlengthfile.FixedLengthFieldDefinition `yaml:"h-fields,omitempty" mapstructure:"h-fields,omitempty" json:"h-fields,omitempty"`
@@ -40,10 +42,10 @@ func WithFilename(fn string) Option {
 	}
 }
 
-func WithRecord(recCfg RecordConfig) Option {
+func WithRecord(recCfg fixedlengthfile.FixedLengthRecordDefinition) Option {
 	return func(cfg *Config) {
 		flds, _ := adjustFieldInfoIndex(recCfg.Fields)
-		cfg.Records = append(cfg.Records, RecordConfig{Key: recCfg.Key, Fields: flds})
+		cfg.Records = append(cfg.Records, fixedlengthfile.FixedLengthRecordDefinition{Id: recCfg.Id, Fields: flds})
 	}
 }
 
@@ -102,7 +104,7 @@ func (cfg Config) ResolveConfig(opts ...Option) (*Config, error) {
 		o(&config)
 	}
 
-	var adjustedRecords []RecordConfig
+	var adjustedRecords []fixedlengthfile.FixedLengthRecordDefinition
 	for _, rec := range config.Records {
 		var activeFields []fixedlengthfile.FixedLengthFieldDefinition
 		for _, field := range rec.Fields {
@@ -117,12 +119,12 @@ func (cfg Config) ResolveConfig(opts ...Option) (*Config, error) {
 			return nil, err
 		}
 
-		log.Info().Str("key", rec.Key).Int("number-of-fields", len(activeFields)).Msg(semLogContext)
+		log.Info().Str("key", rec.Id).Int("number-of-fields", len(activeFields)).Msg(semLogContext)
 
-		adjustedRecords = append(adjustedRecords, RecordConfig{
-			Key:      rec.Key,
+		adjustedRecords = append(adjustedRecords, fixedlengthfile.FixedLengthRecordDefinition{
+			Id:       rec.Id,
 			Fields:   activeFields,
-			fieldMap: computeFieldMap(activeFields),
+			FieldMap: computeFieldMap(activeFields),
 		})
 	}
 

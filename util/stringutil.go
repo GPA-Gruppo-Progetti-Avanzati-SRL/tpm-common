@@ -27,10 +27,11 @@ func StringJoin(args []string, sep string, maxLength int) string {
 	return s
 }
 
-func ToFixedLength(s string, csv bool, maxLength int) (string, bool) {
+// ToFixedLength added padCharacter. The value used was ' '.
+func ToFixedLength(s string, csv bool, maxLength int, padCharacter string) (string, bool) {
 	s, adjusted := ToMaxLength(s, csv, maxLength)
 	if !adjusted {
-		s, adjusted = Pad2Length(s, csv, maxLength, " ")
+		s, adjusted = Pad2Length(s, csv, maxLength, padCharacter)
 	}
 
 	return s, adjusted

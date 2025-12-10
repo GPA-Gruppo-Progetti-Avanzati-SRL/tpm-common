@@ -3,7 +3,9 @@ package fixedlengthfile
 import (
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 )
 
@@ -43,6 +45,31 @@ type FixedLengthFieldDefinition struct {
 	Disabled bool        `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
 	Format   FieldFormat `yaml:"format,omitempty" mapstructure:"format,omitempty" json:"format,omitempty"`
 	WarnOn   bool        `yaml:"warn-on,omitempty" mapstructure:"warn-on,omitempty" json:"warn-on,omitempty"`
+}
+
+func (fd FixedLengthFieldDefinition) Sprintf(value string) string {
+	s := value
+	if fd.Format.Trim {
+		s = strings.TrimSpace(s)
+	}
+
+	l := fd.Length
+	if fd.Format.Alignment == AlignmentRight {
+		l = -l
+	}
+
+	pad := fd.Format.PadCharacter
+	if pad == "" {
+		pad = " "
+	}
+
+	var truncated bool
+	s, truncated = util.ToFixedLength(s, false, l, pad)
+	if truncated {
+		log.Warn().Msg("fixed-length-file: truncated value")
+	}
+
+	return s
 }
 
 type FixedLengthRecordMode string
