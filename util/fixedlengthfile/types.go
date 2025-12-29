@@ -67,7 +67,7 @@ func (fd FixedLengthFieldDefinition) Sprintf(value string) string {
 	var truncated bool
 	s, truncated = util.ToFixedLength(s, false, l, pad)
 	if truncated {
-		log.Warn().Msg("fixed-length-file: truncated value")
+		log.Warn().Str("res", s).Str("fd", fd.Name).Msg("fixed-length-file: truncated value")
 	}
 
 	return s
