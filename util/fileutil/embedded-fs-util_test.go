@@ -2,9 +2,10 @@ package fileutil_test
 
 import (
 	"embed"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 //go:embed embedded-files/*
@@ -16,6 +17,7 @@ func TestFindEmbeddedFiles(t *testing.T) {
 		fileutil.WithFindOptionNavigateSubDirs(),
 		fileutil.WithFindOptionExcludeRootFolderInNames(),
 		fileutil.WithFindOptionPreloadContent(),
+		fileutil.WithFindOptionFoldersIgnoreList([]string{"sub-dir"}),
 		// util.WithFindOptionIgnoreList([]string{"\\.txt$"}),                 // exclude text files....
 		// util.WithFindOptionIncludeList([]string{"\\.template", "sub-dir"}), // include template files... the point is that dirs are excluded...
 	)

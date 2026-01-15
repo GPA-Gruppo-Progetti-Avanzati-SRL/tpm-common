@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,6 +22,7 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 		o(&cfg)
 	}
 
+	var blockedPath string
 	var files []FoundFile
 	if cfg.recurse {
 		err := walkEmbeddedFS(embeddedFS, folderPath,
@@ -29,12 +31,19 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 					return err
 				}
 
+				if blockedPath != "" && strings.HasPrefix(fPath, blockedPath) {
+					return nil
+				} else {
+					blockedPath = ""
+				}
+
 				includeList := cfg.filesIncludeList
 				ignoreList := cfg.filesIgnoreList
 				if info.IsDir() {
 					includeList = cfg.foldersIncludeList
 					ignoreList = cfg.foldersIgnoreList
 				}
+
 				if cfg.acceptFileName(info.Name(), info.IsDir(), includeList, ignoreList) {
 
 					var data []byte
@@ -58,6 +67,10 @@ func FindEmbeddedFiles(embeddedFS embed.FS, folderPath string, opts ...FileFindO
 					}
 
 					files = append(files, FoundFile{Path: fPath, Info: info, Content: data})
+				} else {
+					if info.IsDir() {
+						blockedPath = filepath.Join(fPath, info.Name())
+					}
 				}
 
 				return nil
