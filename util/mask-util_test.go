@@ -16,8 +16,22 @@ func TestMask(t *testing.T) {
 	}
 
 	for _, s := range sarr {
-		s = util.MaskValue(s, '*', 12)
+		s = util.MaskValue(s, util.MaskOptions{Char: '*', Size: 12})
 		t.Log(s)
 	}
 
+	for _, s := range sarr {
+		s = util.MaskValue(s, util.MaskOptions{Char: '*', Size: 12, Direction: util.MaskAtEnd})
+		t.Log(s)
+	}
+
+	for _, s := range sarr {
+		s = util.MaskValue(s, util.MaskOptions{Char: '*', Size: 4, Direction: util.MaskAtEnd, SizeMode: util.MaskKeepSizeCharsInClear})
+		t.Log(s)
+	}
+
+	for _, s := range sarr {
+		s = util.MaskValue(s, util.MaskOptions{Char: '*', Size: 4, Direction: util.MaskAtBeginning, SizeMode: util.MaskKeepSizeCharsInClear})
+		t.Log(s)
+	}
 }
