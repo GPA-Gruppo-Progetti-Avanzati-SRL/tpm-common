@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -33,19 +34,21 @@ func (ff FieldFormat) TrimPrefixPadding() bool {
 }
 
 type FixedLengthFieldDefinition struct {
-	Id     string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	Name   string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Offset int    `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
-	Length int    `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
-	Help   string `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
-	Index  int    `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
-	// Trim   bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
-	Type string `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	Id               string      `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Name             string      `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Offset           int         `yaml:"offset,omitempty" mapstructure:"offset,omitempty" json:"offset,omitempty"`
+	Length           int         `yaml:"length,omitempty" mapstructure:"length,omitempty" json:"length,omitempty"`
+	Help             string      `yaml:"help,omitempty" mapstructure:"help,omitempty" json:"help,omitempty"`
+	Index            int         `yaml:"index,omitempty" mapstructure:"index,omitempty" json:"index,omitempty"`
+	Type             string      `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	Drop             bool        `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
+	Disabled         bool        `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
+	Format           FieldFormat `yaml:"format,omitempty" mapstructure:"format,omitempty" json:"format,omitempty"`
+	SuppressWarnings bool        `yaml:"suppress-warnings,omitempty" mapstructure:"suppress-warnings,omitempty" json:"suppress-warnings,omitempty"`
+
 	// UnPadPrefix string `yaml:"unpad-prefix,omitempty" mapstructure:"unpad-prefix,omitempty" json:"unpad-prefix,omitempty"`
-	Drop     bool        `yaml:"drop,omitempty" mapstructure:"drop,omitempty" json:"drop,omitempty"`
-	Disabled bool        `yaml:"disabled,omitempty" mapstructure:"disabled,omitempty" json:"disabled,omitempty"`
-	Format   FieldFormat `yaml:"format,omitempty" mapstructure:"format,omitempty" json:"format,omitempty"`
-	WarnOn   bool        `yaml:"warn-on,omitempty" mapstructure:"warn-on,omitempty" json:"warn-on,omitempty"`
+	// Trim   bool   `yaml:"trim,omitempty" mapstructure:"trim,omitempty" json:"trim,omitempty"`
+	// WarnOn           bool        `yaml:"warn-on,omitempty" mapstructure:"warn-on,omitempty" json:"warn-on,omitempty"`
 }
 
 func (fd FixedLengthFieldDefinition) Sprintf(value string) string {
@@ -67,7 +70,13 @@ func (fd FixedLengthFieldDefinition) Sprintf(value string) string {
 	var truncated bool
 	s, truncated = util.ToFixedLength(s, false, l, pad)
 	if truncated {
-		log.Warn().Str("res", s).Str("fd", fd.Name).Msg("fixed-length-file: truncated value")
+		var evt *zerolog.Event
+		if !fd.SuppressWarnings {
+			evt = log.Warn()
+		} else {
+			evt = log.Info()
+		}
+		evt.Str("res", s).Str("fd", fd.Name).Msg("fixed-length-file: truncated value")
 	}
 
 	return s
