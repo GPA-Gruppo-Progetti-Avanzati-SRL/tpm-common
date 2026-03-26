@@ -333,3 +333,73 @@ func TestStrings2(t *testing.T) {
 		a.Equal(iw.wanted, modS, "camelize: strings should match")
 	}
 }
+
+func TestStrings3(t *testing.T) {
+	sarrr := []string{
+		"Bitmap, extended                                         ",
+		"PAN                                                      ",
+		"Processing code                                          ",
+		"Amount, transaction                                      ",
+		"Amount, cardholder billing                               ",
+		"Date and time, transmission                              ",
+		"Systems trace audit number                               ",
+		"Date and time, local transaction                         ",
+		"Date, expiration                                         ",
+		"Date, settlement                                         ",
+		"Date, capture                                            ",
+		"Point of service data code                               ",
+		"Card sequence number                                     ",
+		"Function code                                            ",
+		"Message reason code                                      ",
+		"Card acceptor business code                              ",
+		"Date, reconciliation                                     ",
+		"Reconciliation indicator                                 ",
+		"Amounts, original                                        ",
+		"Acquirer reference data                                  ",
+		"Acquiring institution identification code                ",
+		"Forwarding institution identification code               ",
+		"PAN, extended                                            ",
+		"Track 2 data                                             ",
+		"Retrieval reference number                               ",
+		"Approval code                                            ",
+		"Action code                                              ",
+		"Card acceptor terminal identification                    ",
+		"Card acceptor identification code                        ",
+		"Card acceptor name/location                              ",
+		"Additional response data                                 ",
+		"Track 1 data                                             ",
+		"Amount, fees                                             ",
+		"Additional data - national                               ",
+		"Additional data, private                                 ",
+		"Currency code, transaction                               ",
+		"Currency code, cardholder billing                        ",
+		"PIN                                                      ",
+		"Security related control information                     ",
+		"Amounts, additional                                      ",
+		"Integrated circuit card system related data              ",
+		"Original data elements                                   ",
+		"Authorization life cycle code                            ",
+		"Authorizing agent institution identification code        ",
+		"Transport data                                           ",
+		"Network data - private                                   ",
+		"Data record                                              ",
+		"Transaction destination institution identification code  ",
+		"Transaction originator institution identification code   ",
+		"Receiving institution identification code                ",
+		"File name                                                ",
+		"MoneySend/OCT Reference Data                             ",
+		"Advice/notification date and time                        ",
+		"E-commerce data                                          ",
+		"DCC data                                                 ",
+		"New PIN data                                             ",
+		"Fraud Scoring data                                       ",
+		"Additional information                                   ",
+		"MAC                                                      ",
+	}
+
+	for _, s := range sarrr {
+		s = strings.TrimSpace(s) // util.Classify("field" + strings.TrimSpace(s))
+		fmt.Println("\"" + s + "\"")
+	}
+
+}
