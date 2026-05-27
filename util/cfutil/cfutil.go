@@ -13,7 +13,7 @@ import (
 
 const (
 	CONSONANTS = "bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ"
-	VOWELS     = "aeiou"
+	VOWELS     = "aeiouAEIOU"
 )
 
 func computeConsonanti(s string) string {
