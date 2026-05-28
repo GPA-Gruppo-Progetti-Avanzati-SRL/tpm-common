@@ -2,10 +2,10 @@ package zipstream
 
 import (
 	"archive/zip"
-	"github.com/rs/zerolog/log"
 	"io/fs"
-	"io/ioutil"
 	"os"
+
+	"github.com/rs/zerolog/log"
 )
 
 type fileZipStreamImpl struct {
@@ -29,7 +29,7 @@ type fileZipStreamImpl struct {
 func (zs *fileZipStreamImpl) Bytes() []byte {
 
 	if zs.filename != "" {
-		b, err := ioutil.ReadFile(zs.filename)
+		b, err := os.ReadFile(zs.filename)
 		if err != nil {
 			log.Error().Err(err).Str("fileName", zs.filename).Msg("fileZipStreamImpl error reading from file")
 		}
@@ -41,7 +41,7 @@ func (zs *fileZipStreamImpl) Bytes() []byte {
 func (zs *fileZipStreamImpl) Add(fn string, fbody []byte) error {
 
 	if zs.writer == nil {
-		f, err := ioutil.TempFile(zs.rootFolder, "archive-*.zip")
+		f, err := os.CreateTemp(zs.rootFolder, "archive-*.zip")
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (zs *fileZipStreamImpl) Close() error {
 	}
 
 	if errZip != nil || errFile != nil {
-		zs.Dispose()
+		_ = zs.Dispose()
 	}
 
 	if errZip != nil {
@@ -111,7 +111,7 @@ func (zs *fileZipStreamImpl) CloseAndSave(fn string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(fn, zs.Bytes(), fs.ModePerm)
+	err = os.WriteFile(fn, zs.Bytes(), fs.ModePerm)
 	if err != nil {
 		return err
 	}

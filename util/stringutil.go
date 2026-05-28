@@ -376,6 +376,15 @@ func Dasherize(s string) string {
 	return m.ReplaceAllString(Decamelize(s), "-")
 }
 
+func SimpleDasherize(s string, toLower bool) string {
+	s = strings.ReplaceAll(s, " ", "-")
+	s = strings.ReplaceAll(s, "_", "-")
+	if toLower {
+		s = strings.ToLower(s)
+	}
+	return s
+}
+
 func Camelize(s string) string {
 	m := regexp.MustCompile(STRING_CAMELIZE_REGEXP)
 	s1 := m.ReplaceAllStringFunc(s, func(r string) string { return strings.ToUpper(r[len(r)-1:]) })
