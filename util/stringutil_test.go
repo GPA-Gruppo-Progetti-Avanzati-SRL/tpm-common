@@ -334,6 +334,53 @@ func TestStrings2(t *testing.T) {
 	}
 }
 
+func TestSplitByDelimiter(t *testing.T) {
+
+	a := assert.New(t)
+
+	t.Log("----------- all delimiters present")
+	text := "prefix [name:Mario] middle {age:42} suffix"
+	m, err := util.SplitByDelimiter(text,
+		util.Delimiter{Name: "name", Start: "[name:", End: "]"},
+		util.Delimiter{Name: "age", Start: "{age:", End: "}"},
+	)
+	require.NoError(t, err)
+	a.Equal("Mario", m["name"])
+	a.Equal("42", m["age"])
+	a.Len(m, 2)
+
+	t.Log("----------- start not found is skipped")
+	m, err = util.SplitByDelimiter(text,
+		util.Delimiter{Name: "name", Start: "[name:", End: "]"},
+		util.Delimiter{Name: "missing", Start: "<none:", End: ">"},
+	)
+	require.NoError(t, err)
+	a.Equal("Mario", m["name"])
+	_, ok := m["missing"]
+	a.False(ok, "delimiter with missing start should not be in the map")
+	a.Len(m, 1)
+
+	t.Log("----------- start found but end missing returns error")
+	m, err = util.SplitByDelimiter("prefix [name:Mario middle",
+		util.Delimiter{Name: "name", Start: "[name:", End: "]"},
+	)
+	require.Error(t, err)
+	a.Nil(m)
+
+	t.Log("----------- empty content between delimiters")
+	m, err = util.SplitByDelimiter("value=()",
+		util.Delimiter{Name: "empty", Start: "(", End: ")"},
+	)
+	require.NoError(t, err)
+	a.Equal("", m["empty"])
+	a.Len(m, 1)
+
+	t.Log("----------- no delimiters returns nil map and no error")
+	m, err = util.SplitByDelimiter("just some text")
+	require.NoError(t, err)
+	a.Nil(m)
+}
+
 func TestStrings3(t *testing.T) {
 	sarrr := []string{
 		"Bitmap, extended                                         ",

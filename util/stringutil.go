@@ -417,3 +417,34 @@ func Capitalize(s string) string {
 func DeCapitalize(s string) string {
 	return strings.ToLower(s[0:1]) + s[1:]
 }
+
+type Delimiter struct {
+	Name, Start, End string
+}
+
+func SplitByDelimiter(text string, delimiters ...Delimiter) (map[string]string, error) {
+	const semLogContext = "common-util::split-by-delimiter"
+
+	var result map[string]string
+	for _, d := range delimiters {
+		startNdx := strings.Index(text, d.Start)
+		if startNdx < 0 {
+			continue
+		}
+
+		contentNdx := startNdx + len(d.Start)
+		endNdx := strings.Index(text[contentNdx:], d.End)
+		if endNdx < 0 {
+			err := fmt.Errorf("%s: delimiter start %q found but end %q is missing for delimiter %s", semLogContext, d.Start, d.End, d.Name)
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
+
+		if result == nil {
+			result = make(map[string]string)
+		}
+		result[d.Name] = text[contentNdx : contentNdx+endNdx]
+	}
+
+	return result, nil
+}
